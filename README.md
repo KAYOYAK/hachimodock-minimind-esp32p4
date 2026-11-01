@@ -244,7 +244,7 @@ TF 卡根目录：
 - 无语音 ASR/TTS、无 Agent 状态跟随——这些依赖 PC/云端，本方案主动放弃。
 - TF 卡质量和卡槽接触直接影响启动耗时，建议正品卡。
 - 部分 ESP32-P4 rev v1.3 板的 SD 高速时钟切换不稳定，固件已加降频/重试（见 docs/HARDWARE.md）。
-- 生成中间态偶发 `invalid_json` NACK（2 次/轮，最终气泡正常）；后续会继续收敛。
+- 设备侧偶发 `invalid_json` / `invalid_message` NACK（2–6 次/轮，集中在 `session/current` 连发时；最终 `speech/text` 气泡正常）。已尝试：UTF-8 边界裁剪、发送间隔化、关闭中间态更新，均未根除，判断与设备端解析时序有关；不影响本地生成与最终显示。
 
 ---
 
