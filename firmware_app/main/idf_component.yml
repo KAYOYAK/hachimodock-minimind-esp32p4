@@ -1,0 +1,6 @@
+## USB Host stack + CH343 VCP driver for driving the HachimoDock pet.
+dependencies:
+  idf: ">=6.0"
+  espressif/usb: "^1.0.0"
+  espressif/usb_host_cdc_acm: "^2.3.0"
+  espressif/usb_host_ch34x_vcp: "^2.2.0"

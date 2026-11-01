@@ -1,0 +1,44 @@
+# Target: ESP32-P4, 32MB PSRAM, 16MB flash (ALIENTEK / Waveshare-class boards)
+CONFIG_IDF_TARGET="esp32p4"
+
+# --- flash / partitions ---
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="16MB"
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+CONFIG_PARTITION_TABLE_FILENAME="partitions.csv"
+
+# --- newlib (avoid picolibc Windows MAX_PATH issues, same as Kestrel) ---
+CONFIG_LIBC_NEWLIB=y
+CONFIG_COMPILER_CXX_RTTI=y
+
+# --- PSRAM: 32MB in-package, 8-line (hex) mode, 200MHz ---
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_HEX=y
+CONFIG_SPIRAM_SPEED_200M=y
+CONFIG_SPIRAM_USE_MALLOC=y
+CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL=16384
+
+# --- FATFS for TF card ---
+CONFIG_FATFS_LFN_HEAP=y
+CONFIG_FATFS_MAX_LFN=255
+
+# --- no WiFi/BT: standalone offline device (smaller firmware) ---
+CONFIG_ESP_WIFI_ENABLED=n
+CONFIG_BT_ENABLED=n
+
+# --- computation-heavy decode loops: watchdog off, -O2 ---
+CONFIG_ESP_TASK_WDT_EN=n
+CONFIG_ESP_INT_WDT=n
+CONFIG_COMPILER_OPTIMIZATION_PERF=y
+
+# This board is ESP32-P4 chip revision v1.3 (rev < 3.0). ESP-IDF 6.x is mutually
+# exclusive between rev<3 and rev>=3 support; select the <3 path explicitly.
+CONFIG_ESP32P4_SELECTS_REV_LESS_V3=y
+CONFIG_ESP32P4_REV_MIN_100=y
+
+# 主任务栈：app_main + printf 需要超过默认 3584B（实测栈溢出）
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192
+CONFIG_MAIN_TASK_STACK_SIZE=8192
+CONFIG_ESP_CONSOLE_SECONDARY_NONE=y
+CONFIG_USB_HOST_HUBS_SUPPORTED=y

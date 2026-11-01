@@ -1,0 +1,32 @@
+# Build outputs
+build/
+managed_components/
+managed_components.bak/
+sdkconfig
+sdkconfig.old
+*.bin
+!artifacts/**/*.bin
+
+# Python / venv
+.venv/
+__pycache__/
+*.pyc
+vendor/
+
+# Large local data
+work/
+logs/
+*.kmcu
+!artifacts/model.kmcu
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+*.key
+*.pem
+service-settings.json
