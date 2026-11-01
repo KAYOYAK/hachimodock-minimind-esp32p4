@@ -87,6 +87,26 @@ python tools/convert_minimind.py --profile q3e4 \
 
 > 若使用自训权重：先用 `tools/pth2hf.py` 将 `full_sft_768.pth` 转 HF Qwen3 格式，再量化。
 
+## 4.5 量化质量验证（q3e4）
+
+| 指标 | 结果 |
+|---|---|
+| HF 转换 vs 原生 MiniMind 前向 | logits `max|diff| = 0.000e+00` |
+| 端侧 packed GEMV vs PC NumPy 参考 | top-8 token ids 全一致，`max|diff|≈0.00002` |
+| greedy 序列 | 逐 token 完全一致（PC 参考 vs 板端 `/ids`） |
+| 板端生成样例 | `你好！我是一个AI助手，我是一个虚拟`（与 PC 参考开头一致） |
+
+不同量化档位（同架构、不同体积/质量取舍）：
+
+| 档位 | 大小 | 说明 |
+|---|---|---|
+| q2 | 20,030,848 B | 可装下但质量明显下降，不推荐 |
+| q3 | 28,018,048 B | 纯 q3，质量略低于 q3e4（embedding q3 拖累） |
+| **q3e4（部署档）** | **28,632,448 B** | embedding q4 + attn/FFN q3，32MB PSRAM 全驻，最佳平衡 |
+| q4 | 36,005,248 B | 质量最好但 36MB > 32MB PSRAM，只能 TF 流式（0.38 tok/s 会再慢数倍） |
+
+> q4 与非量化 bf16 的 1:1 逐 token 对拍未做（无 36MB 常驻内存条件），但 q3e4 的 top-8/贪心序列已与 fp32 参考完全一致，说明量化误差没有改变解码轨迹。
+
 ## 5. 数值对齐（已实测）
 
 - HF Qwen3 转换 vs 原生 MiniMind 前向：logits `max|diff| = 0.000e+00`；

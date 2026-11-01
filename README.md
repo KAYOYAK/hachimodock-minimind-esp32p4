@@ -126,6 +126,25 @@ local-llm  quantization  qwen3  tiny-llm  desktop-pet  usb-host  embedded-ai
 
 ---
 
+---
+
+## 📊 训练证据（可复核）
+
+训练日志、逐 step loss、权重哈希已整理到 **[docs/TRAINING-EVIDENCE.md](docs/TRAINING-EVIDENCE.md)**，核心数据：
+
+| 阶段 | 数据 | step | 耗时 | final loss |
+|---|---|---|---|---|
+| Pretrain | 1,270,238 条 / 1.18 GB | 39,695 | 2h26m | **2.01** |
+| SFT | 905,718 条 / 1.66 GB | 56,608 | 4h06m | **1.71** |
+| 医药 LoRA 复刻 | 25,276 条 / 10 epochs | 7,900 | 24min | **1.2564** |
+
+![pretrain loss](docs/assets/pretrain_loss.svg)
+![sft loss](docs/assets/sft_loss.svg)
+![lora loss](docs/assets/lora_loss.svg)
+
+> 环境：本地 RTX 5070 Ti Laptop 12GB，Python 3.12.10 + torch 2.14.1+cu130；无云服务器。
+> 权重 SHA256、日志首尾摘录、模型样例见 [docs/TRAINING-EVIDENCE.md](docs/TRAINING-EVIDENCE.md)。
+
 ## 🚀 快速开始
 
 ### 硬件
