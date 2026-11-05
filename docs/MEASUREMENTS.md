@@ -33,13 +33,21 @@
 | 项 | 字节 |
 |---|---|
 | q3e4 权重 | 28,632,448（27.3 MiB） |
-| KV cache（96 token，FP32） | 2,359,296 |
+| KV cache（192 token，FP16） | 2,359,296 |
 | Norm arena（内部 RAM） | 58,368 |
 | Scratch + int16 激活（内部 RAM） | 52,608 |
 | KV 初始化后 PSRAM 剩余 | 2,352,828 |
 | PSRAM 合计 | ≤ 33,554,432（32 MiB） |
 
-## 4. CE（windowed：每 96 token 独立 reset，匹配部署上下文）
+
+## 3b. KV cache FP16 / 192-token（2026-11-06 实测）
+
+- 将 K/V cache 改为 FP16 存储，上下文 96→**192 token**，KV 占用仍为 **2,359,296 B**；
+- window0 CE：**6.660667**（FP32-96 为 6.662094，Δ=0.00143，0.02%）；
+- 速度：**2,153.9 / 2,154.3 ms/token**（r=0.984），与 FP32-96 的 2,152 在噪声内；
+- 结论：同预算下上下文翻倍、代价可忽略；部署配置采用 192 token + FP16 KV（FP32-96 保留为保守回退）。
+
+## 4. CE（windowed：每 96 token 独立 reset，匹配评估协议）
 
 ### 中文技术文本（288 token / 3 窗口）
 
@@ -103,3 +111,9 @@ python tools\flash_p4.py --build firmware_app\build --uart COM4
 python paper\host_ce.py --model work\hf_minimind3_selftrained
 python paper\host_rules.py
 ```
+
+## 3c. 192-token 上下文收益
+
+- `/pplw 192`：单窗口 192 token → **CE 5.970078（PPL 391.5）**；
+- 同前缀 96-token 重置（190 目标）→ 加权 mean **7.0135（PPL ~1,107）**；
+- 上下文 96→192 使 CE 降低约 **15%**（PPL 1107→392），证明 192 token 有实际建模收益。
