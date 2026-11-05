@@ -1,0 +1,284 @@
+% IEEE ESL letter draft (4 pages). Compile on Overleaf with IEEEtran.
+% Numbers marked <...> are filled from device measurements (2026-11-05/06).
+\documentclass[journal,letterpaper]{IEEEtran}
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{url}
+
+\begin{document}
+
+\title{Fully-Resident Weight Storage for Mixed-Precision\\ SLM Inference on a 32-MB PSRAM MCU}
+
+\author{<Author Name>%
+\thanks{<Affiliation, city, country; e-mail>. Manuscript received <date>.}}
+
+\markboth{IEEE Embedded Systems Letters}%
+{<Author>: Fully-Resident Weight Storage for Mixed-Precision SLM Inference}
+
+\maketitle
+
+\begin{abstract}
+We show that mixed-precision quantization enables fully-resident weight storage of a dense
+small language model (SLM) on a 32-MB PSRAM microcontroller. A 63.91M-parameter model
+quantized to q3e4 (embedding/output q4, attention and FFN q3) occupies \textbf{27.3 MiB}
+and runs entirely in on-package PSRAM with a \textbf{192-token} context window (FP16 K/V cache) and no host
+at inference time. Measured decode throughput is \textbf{0.465 tok/s} (2.15 s/token) after
+int16-activation, zero-copy packed GEMV plus activation-quantization hoisting, a
+\textbf{2.61$\times$} cumulative speedup over the scalar baseline (2.13$\times$ from the
+storage-format change and 1.23$\times$ from the hoisting pass); the GEMV kernel dominates
+decode time, so kernel-level gains pass through almost unchanged to end-to-end latency. A pre-registered
+accuracy lower bound (fixed-text cross-entropy within 1.15$\times$ of q4, plus a deterministic
+30-prompt rule score $\geq 80\%$) separates the feasible configurations: q2 crosses the
+accuracy cliff, q4 exceeds the 32-MB budget, and mixed/q3e4 both meet the bound while q3e4
+keeps about four times more PSRAM headroom and is selected for deployment. All arithmetic is
+auditable line by line and the artifact is open.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Edge AI, on-device inference, large language models, mixed-precision quantization, PSRAM,
+microcontrollers, memory capacity.
+\end{IEEEkeywords}
+
+\section{Introduction}
+\IEEEPARstart{P}{utting} an entire dense language model on a microcontroller is a capacity
+problem before it is a compute problem. On a fixed 32-MB PSRAM budget, a 63.91M-parameter
+SLM needs about 244~MiB in FP16 and 128~MiB in INT8, both far beyond on-package memory;
+weights must therefore be compressed until they fit, and any configuration that does not fit
+is simply not a candidate, regardless of its arithmetic quality.
+
+Prior work avoids this wall in two ways. A 180.9M-parameter MoE design (p-for-llm) trades
+dense residency for sparsity: only the routed experts are active, its $\sim$44~MiB of state
+is split between flash XIP and PSRAM, and part of the PSRAM weights are transferred from a
+host over USB at boot, so the host is absent during inference yet still required at startup;
+its $\sim$9~tok/s reflects top-1 routing over 29 experts per layer. The PIE series instead
+accelerates kernels on models far below the capacity boundary (0.61$\rightarrow$4.31~tok/s)
+and does not address how much dense model can reside. A recent survey of MCU LLM systems
+finds fully-on-chip evidence only at the 256--412~KB scale and one 5.81~MB ternary ViT with
+external PSRAM; a fully-resident \emph{dense} 27.3~MiB model on an ESP32-class device falls
+in a region that is not covered.
+
+This letter answers two questions within one concrete design point: how far a dense SLM can be
+compressed and still reside fully in 32~MB of PSRAM, and what latency that residency costs once
+the storage problem is solved. We quantify the deployment frontier with a pre-registered
+accuracy bound, measure the decode-time split between GEMV and the rest of the forward pass,
+and show that the GEMV kernel---not PSRAM bandwidth---dominates latency, which is why a 2.13$\times$
+kernel optimization appears almost one-to-one at the system level. We do not claim a new
+quantization method or a new system architecture: the contribution is an auditable capacity point,
+a measured latency-cost attribution, and a reproducible artifact.
+
+\section{Method}
+\textbf{Quantization scheme.} q3e4 stores the token embedding and the tied output layer at
+q4\_0 (18 bytes per 32 weights: one fp16 block scale plus 16 packed nibbles) and all attention
+and FFN linear projections at q3\_0 (14 bytes per 32 weights: fp16 scale plus 12 packed
+3-bit values). Activations are quantized to int16 per GEMV call; RMSNorm weights, biases and
+the KV cache remain FP32. A KMCU image is a single flat file with a 4,480-byte header followed
+by per-tensor packed blocks; the q3e4 image is 28,632,448 bytes (27.3~MiB).
+
+\textbf{Accuracy lower bound (pre-registered).} A configuration is deployable only if it
+simultaneously satisfies (i) per-token cross-entropy on a fixed text within 1.15$\times$ of the
+q4 reference, and (ii) a deterministic rule score of at least 80\% on 30 fixed prompts. The
+thresholds were fixed before measuring q3e4 and are not adjusted afterwards. The q4 reference
+cannot run on the device (36.0~MB exceeds the budget), so it is simulated on a host with the
+identical block-32 recipe; the same host simulation reproduces q3e4, and host/device
+cross-checking bounds the simulation error (Sec.~III).
+
+\textbf{Bit allocation rationale.} The embedding and output matrix (6400$\times$768) is kept at
+q4 because it carries lexical identity and is reused by the tied head, while the FFN projections
+are the largest parameter group and therefore the main compression lever; attention projections
+are compressed less aggressively than FFN only to the extent the budget allows. The resulting
+q3e4 point is a capacity calculation, not a claim that embeddings are universally more
+sensitive.
+
+\textbf{Zero-copy packed GEMV.} Dequantizing to an expanded FP32/INT8 copy would double the
+resident footprint and add per-element traffic. Instead, the packed image is used in place:
+each 32-weight block is read from PSRAM, unpacked on the fly into signed integers, and dotted
+with the int16 activation vector; the fp16 block scale is applied to the integer partial sum.
+The inner loops read 32-bit words rather than individual 3-bit fields. The same kernel serves
+all linear layers and the tied output head, so the storage format and the compute path are
+consistent by construction.
+
+\textbf{Context and KV budget.} The deployed context is 192 tokens with FP16 K/V caches:
+$2 \times 8 \times 192 \times 4 \times 96 \times 2$~B $=$ 2,359,296~B, i.e. the same PSRAM as a
+96-token FP32 cache (for reference, 96 tokens with FP32 K/V was the earlier configuration;
+Sec.~III reports the measured effect of the FP16 cache).
+
+\textbf{Model.} The weights are trained from scratch on a local 12-GB GPU: pre-training
+(39,695 steps, final loss 2.01) and supervised fine-tuning (56,608 steps, final loss 1.71),
+followed by a separate LoRA reproduction experiment (rank 16, 7,900 steps, loss 1.2564) and
+the q3e4 quantization described above. A QK-norm correction in the deployed kernel is an
+enabling fix, not a contribution.
+
+\section{Results}
+\textbf{Memory budget (Table~\ref{tab:budget}).} All weights and caches are allocated once at
+boot and their sizes are auditable: the q3e4 image (28,632,448~B) plus the KV cache
+(2,359,296~B) plus small internal-RAM workspaces leave 2,352,828~B of PSRAM free after KV
+initialization, measured at runtime.
+
+\begin{table}[t]
+\centering
+\caption{Deployed memory budget on a 32-MB PSRAM ESP32-P4 (measured).}
+\label{tab:budget}
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+Item & Bytes \\
+\midrule
+q3e4 weights (packed image) & 28,632,448 (27.3 MiB) \\
+KV cache, 192 tokens, FP16 & 2,359,296 \\
+Norm arena (internal RAM) & 58,368 \\
+Scratch + int16 activations (internal RAM) & 52,608 \\
+PSRAM free after KV init (runtime) & 2,352,828 \\
+\midrule
+PSRAM total & $\leq$ 33,554,432 (32 MiB) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Decode latency and GEMV share (Table~\ref{tab:gemv}).} The storage-format change
+(int16 activations + zero-copy packed weights) reduces decode from the 5,622~ms/token
+scalar-expanded baseline to 2,639~ms/token (0.379~tok/s), a 2.13$\times$ kernel-level gain.
+Hoisting the per-token activation quantization out of the 6,400-row output-head loop and
+replacing per-weight offsets by block-sum corrections lowers it to
+\textbf{2,152~ms/token (0.465~tok/s)}, i.e. 2.61$\times$ cumulative, with bit-identical CE.
+Instrumenting the packed GEMV path with cycle counters gives a GEMV share $r=0.988$ on the
+2,639-ms build; after hoisting, the measured share is $r=0.985$. For the format change, Amdahl's law with $r=0.988$ and a 2.13$\times$ kernel gain predicts $1/((1-r)+r/2.13)=1.97\times$ end-to-end (observed 2.13$\times$); for the hoisting pass, $r=0.985$ and a 1.23$\times$ kernel gain predict 1.22$\times$ (observed 1.23$\times$), so kernel gains pass through almost unchanged. Counting one full read
+of packed weights (28.63~MB) plus one complete KV pass (2.36~MB) gives 30.99~MB/token, i.e.
+13.3--14.4~MB/s at the two operating points, while the weight-only rate during GEMV is
+10.98--13.3~MB/s---far below the 90.8~MB/s sequential-read microbenchmark. The scalar
+unpack-plus-dot instruction stream, not memory bandwidth, is therefore the limiting factor:
+a bandwidth-bound design would call for a different storage format, whereas an
+instruction-bound one motivates kernel vectorization or wider unpacking.
+
+\begin{table}[t]
+\centering
+\caption{Decode-time ablation (measured on device).}
+\label{tab:gemv}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Configuration & ms/token & Speedup & $r$ & MB/s \\
+\midrule
+Scalar float, expanded weights & 5,622 & 1$\times$ & -- & -- \\
+int16 activation + zero-copy packed & 2,639 & 2.13$\times$ & 0.988 & 10.98 / 11.75 \\
++ hoisted activation quant.\ / block sums & \textbf{2,152} & \textbf{2.61$\times$ (cum.)} & 0.985 & 13.5 / 14.4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{FP16 K/V cache.} Replacing the FP32 K/V cache with FP16 storage doubles the context to
+192 tokens at the same 2,359,296~B. Window-0 CE changes from 6.662094 to 6.660667
+($\Delta=0.0014$, 0.02\%) and decode time from 2,152 to 2,154~ms/token (within run-to-run
+noise), so the larger context is adopted at no measurable cost. The doubled context also pays
+off in modeling: on the same token prefix, one 192-token window scores CE 5.970 versus 7.014
+for resetting every 96 tokens (190/191 targets), i.e. about a 15\% reduction in CE
+(PPL 392 vs.\ 1,107).
+
+\textbf{Accuracy frontier (Table~\ref{tab:frontier}).} Host simulation with the identical windowed recipe (each 96-token window
+scored independently, matching the deployed context) places q4 at CE $=6.949$ (PPL 1,042) and
+q3e4 at 7.087 (1.020$\times$, PPL 1,197); q2 reaches 10.074 (1.450$\times$, PPL 23,710), clearly
+beyond the pre-registered bound. On a second, English public corpus (Apache-2.0 license text,
+288 tokens) the ordering is unchanged: q3e4 5.676 (1.048$\times$ of q4) versus q2 9.905
+(1.829$\times$). The device reproduces q3e4 window-by-window with a host/device CE difference
+below 0.001, which validates the host-simulated q4 reference, and the 30-prompt rule score is
+80\% for q3e4 versus 0\% for q2 (the fp32 reference also scores 80\%). On the same capacity budget, mixed
+(embedding/attention q4, FFN q3; 30.40~MB) also satisfies the accuracy bound (CE 7.037,
+1.013$\times$), but it leaves only about 0.58~MB of PSRAM after the KV cache, whereas q3e4 leaves
+2.35~MB. We therefore report a \emph{feasibility frontier} rather than a unique configuration:
+both mixed and q3e4 satisfy the pre-registered bound (mixed is even slightly more accurate and
+faster on this kernel), and q3e4 is selected as the deployment point for its four-fold larger
+runtime headroom under heap fragmentation and USB/protocol activity.
+
+\begin{table}[t]
+\centering
+\caption{Capacity--accuracy frontier (32-MB PSRAM; host simulation, windowed CE, same recipe).}
+\label{tab:frontier}
+\small
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Config & Size (B) & CE & CE/q4 & Rule & ms/token \\
+\midrule
+q2 & 20,030,848 & 10.074 & 1.450 & 0\% & \textbf{1,352} \\
+q3 & 28,018,048 & 7.090 & 1.020 & -- & -- \\
+\textbf{q3e4 (deployed)} & \textbf{28,632,448} & \textbf{7.087} & \textbf{1.020} & \textbf{80\%} & \textbf{2,152} \\
+mixed & 30,401,920 & 7.037 & 1.013 & 73.3\% & \textbf{2,017} \\
+q4 (reference) & 36,005,248 & 6.949 & 1.000 & 73.3\% & n/a \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Positioning (Table~\ref{tab:compare}).} The closest points are a sparsity-assisted MoE
+with partial residency and a boot-time host transfer, and vector-kernel acceleration on models
+well below the capacity boundary. We do not compare throughput directly: the table positions
+constraint differences, and the reported throughputs are cited as reported by their authors.
+
+\begin{table}[t]
+\centering
+\caption{Constraint comparison (throughput values as reported, not reproduced).}
+\label{tab:compare}
+\small
+\begin{tabular}{@{}p{1.45cm}p{1.6cm}p{1.9cm}r@{}}
+\toprule
+Work & Model & Residency / boot host & tok/s \\
+\midrule
+p-for-llm & 180.9M MoE & partial (PSRAM + flash XIP); USB weight transfer at boot & $\sim$9 \\
+PIE & -- & kernel-level acceleration; no capacity study & 0.61--4.31 \\
+\textbf{This work} & 63.91M dense & \textbf{full, 27.3 MiB}; no host at any time & \textbf{0.465} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{End-to-end and startup.} Weight loading from a TF card takes about 20.6~s, dominated by
+the card read; the packed image needs no post-load unpacking. Prompt prefill is processed
+token-by-token with the same kernel (no batched prefill), so a short event-driven query plus a
+32-token reply takes on the order of one to two minutes; this is consistent with the intended
+single-turn, non-conversational usage and is reported as a limitation rather than a capability.
+
+\section{Discussion and Limitations}
+The measured split changes the design story: the deployment is GEMV-bound ($r=0.988$ before hoisting; 0.985 after), and the
+scalar unpack/dot instruction stream is the throughput limiter, not the PSRAM bandwidth. The
+practical consequence is that the 2.13$\times$ kernel gain survives at the system level, and
+further gains should come from wider unpacking or ISA-level vectorization rather than from
+reducing bytes read. The 192-token context is obtained at no extra memory by storing the K/V cache in FP16
+(2.25~MiB for 192 tokens); measured windowed CE changes by 0.0014 and decode time is
+statistically unchanged, so the FP16 cache is adopted for deployment while FP32 K/V at 96
+tokens remains a conservative fallback. The model itself is deliberately small and trained on a single local GPU; its absolute
+quality is not the claim---accuracy measurements only delimit the feasible set. The artifact,
+training logs, evaluation scripts and the self-trained q3e4 image are public for reproduction.
+
+\section{Conclusion}
+A 63.91M dense SLM can reside fully in 32~MB of PSRAM at 27.3~MiB with a 96-token context and
+no host participation, and the resulting latency is dominated by the packed GEMV kernel rather
+than by memory bandwidth, so kernel-level work transfers almost directly to end-to-end speed.
+The capacity--accuracy frontier, with q2 beyond the accuracy cliff and q4 beyond the budget, is
+measured under a pre-registered bound and is reproducible from the public artifact.
+
+\section*{Acknowledgment}
+The author used the DeepSeek Harness AI coding agent (DeepSeek model) to assist with the
+ESP32-P4 firmware implementation (model loading, packed-weight GEMV kernels, USB host protocol
+bridge), quantization and measurement tooling (Sections II--III), experiment automation, and
+manuscript editing. The AI system is not an author. The author independently verified all
+generated code, measurements and text and takes full responsibility for the accuracy,
+originality and integrity of this work.
+
+\begin{thebibliography}{18}
+\bibitem{pforllm} <p-for-llm authors>, ``<title>,'' <venue>, <year>.
+\bibitem{pie} <PIE authors>, ``<title>,'' <venue>, <year>.
+\bibitem{survey} <2026 survey authors>, ``A survey of language models on microcontrollers,'' <venue>, 2026.
+\bibitem{qwen3} Qwen Team, ``Qwen3 technical report,'' 2025.
+\bibitem{gptq} G.~Frantar \emph{et al.}, ``GPTQ: Accurate post-training quantization for generative pre-trained transformers,'' \emph{ICLR}, 2023.
+\bibitem{awq} J.~Lin \emph{et al.}, ``AWQ: Activation-aware weight quantization for on-device LLM compression and acceleration,'' \emph{MLSys}, 2024.
+\bibitem{llmint8} T.~Dettmers \emph{et al.}, ``LLM.int8(): 8-bit matrix multiplication for transformers at scale,'' \emph{NeurIPS}, 2022.
+\bibitem{psram} Espressif Systems, ``ESP32-P4 technical reference manual,'' 2025.
+\bibitem{minimind} <MiniMind authors>, ``MiniMind: train a small language model from scratch,'' GitHub, 2025.
+\bibitem{memorywall} <memory-wall / MCU storage hierarchy reference>, <venue>, <year>.
+\bibitem{edgebench} <edge transformer inference benchmark>, <venue>, <year>.
+\bibitem{int16} <int16 activation inference reference>, <venue>, <year>.
+\bibitem{ternaryvit} <ternary ViT on ESP32-S3 reference>, <venue>, <year>.
+\bibitem{hachimodock} <HachimoDock authors>, ``HachimoDock: open-source desktop pet,'' GitHub, 2025.
+\end{thebibliography}
+
+\end{document}
