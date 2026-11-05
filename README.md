@@ -279,4 +279,4 @@ TF 卡根目录：
 | `SHA256SUMS` | — | 见 `artifacts/SHA256SUMS` |
 
 下载后放入 TF 卡根目录即可；校验：
-`fd162ab9...  model.kmcu` / `80db508d...  tokenizer.bin`
+`feb574f9...  model.kmcu` / `80db508d...  tokenizer.bin`
