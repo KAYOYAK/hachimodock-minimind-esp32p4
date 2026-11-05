@@ -25,7 +25,7 @@
 具体工作：
 
 1. **模型全流程自研**：在本机 RTX 5070 Ti Laptop 上**从零训练** MiniMind-3 Zero（pre-train 1 epoch + SFT 1 epoch，共 **6h32m**，最终 loss 2.01 / 1.71），并用官方数据复刻医药 **LoRA**（rank=16，7,900 step，loss 1.2564）；再做**自定义混合位宽量化**（q3e4：embed q4，attention/FFN q3），把 63.91M 参数压到 **28.6 MB**，在 ESP32-P4 的 32 MB PSRAM 中全驻运行。
-2. **端侧推理引擎**：基于 Kestrel-MCU（Apache-2.0）移植到 ESP32-P4，补齐 Qwen3 的 **q_norm / k_norm**，实现 KMCU 打包权重的零拷贝 GEMV，并做了 int16 量化的 GEMV 加速（约 2.1×）。
+2. **端侧推理引擎**：基于 Kestrel-MCU（Apache-2.0）移植到 ESP32-P4，补齐 Qwen3 的 **q_norm / k_norm**，实现 KMCU 打包权重的零拷贝 GEMV；int16 激活整数点积 + 激活量化外提/offset 消除，累计 **2.61×** 于标量基线（其中存储格式贡献 2.13×）。
 3. **替代官方 PC 客户端**：在 ESP32-P4 上实现 USB Host + CH343 驱动 + HachimoDock 官方 JSONL 协议（`hello / ack / heartbeat / session/current / speech/text / input/event / debug/screenshot`），让 P4 单板直接驱动哈基米机。
 4. **协议细节逆向验证**：确认 CH343 的 4 Mbaud 运行时链路、DTR/RTS 与 P4 EN/GPIO35 的对应关系，以及乐鑫 CH34x host 驱动缺失的 CH343 vendor 初始化（`0xA1` LCR+波特率、`0xA4` 释放 DTR/RTS）。
 5. **完整闭环**：宠物摇杆输入 → `input/event` → P4 本地生成中文回复 → `speech/text` 气泡 → 宠物屏幕显示，全程离线、无 PC、无网络。
@@ -73,7 +73,7 @@ local-llm  quantization  qwen3  tiny-llm  desktop-pet  usb-host  embedded-ai
 ### 原创（本人，Apache-2.0）
 - **自训练权重**：`full_sft_768.pth` 及量化后的 `model.kmcu`（q3e4，28.6 MB）。
 - **自定义混合位宽量化**：KMCU q4/q3/q2 布局、量化工具链、与上游框架的格式映射。
-- **ESP32-P4 端侧部署**：QK-norm 修复、打包权重零拷贝 GEMV、int16 激活量化整数点积（2.1×）、内存/任务规划。
+- **ESP32-P4 端侧部署**：QK-norm 修复、打包权重零拷贝 GEMV、int16 激活量化整数点积 + 激活量化外提（累计 2.61×）、内存/任务规划。
 - **USB Host 协议桥**：在 ESP32-P4 + CH343 上实现官方 JSONL 协议 host，**替代官方 PC 客户端**；含 CH343 4 Mbaud vendor 初始化（`0xA1/0xA4`）的逆向结论。
 - **三者集成方案**：离线、无 PC、无网络的 AI 桌宠完整闭环。
 
@@ -113,13 +113,13 @@ local-llm  quantization  qwen3  tiny-llm  desktop-pet  usb-host  embedded-ai
 | 主控 | ESP32-P4（rev v1.3），双核 360 MHz，16 MB Flash，**32 MB PSRAM** |
 | 模型 | MiniMind-3 架构，63.91M 参数，自训练 + LoRA + **q3e4 混合量化** |
 | 模型体积 | **28,632,448 B（27.3 MiB）**，全驻 PSRAM |
-| 推理速度 | **2.64 s/token ≈ 0.38 tok/s**（q3e4，标量整数点积） |
+| 推理速度 | **2,152 ms/token ≈ 0.465 tok/s**（q3e4，int16+零拷贝+量化外提，累计 2.61× vs 标量基线 5,622 ms） |\n| GEMV 占比 r | **0.985**（含 lm_head，精确口径） |\n| PSRAM 顺序读带宽 | **90.8 MB/s**（1 MB 微基准，下界） |\n| 设备/主机 CE 对拍 | 逐窗口 **Δ<0.001**（q3e4，windowed 96-token） |\n| 规则评分（30 prompts） | q3e4 **80%**（= fp32 80%）；q2 **0%** |
 | 模型加载 | **20.6 s**（TF 卡 4-bit 40 MHz；受卡/卡槽影响） |
 | 设备协议 | 官方 `pet-usb-jsonl-v3`，CH343 4 Mbaud |
 | 功耗 | 裸板 ~0.2–0.5 A（5V），整机峰值 ~0.8–1 A |
 | 网络 | 无（完全离线） |
 
-> 速度以「一句话几十秒」为代价换取完全离线与零云成本；后续可用 PIE 定点 SIMD 再提速。
+> 速度以「一句话几十秒」为代价换取完全离线与零云成本；实测瓶颈已定位在 GEMV 指令流（r=0.985），进一步提速方向是更宽的向量化解包。
 
 > **已验证（2026-11-01，官方 v3 固件裸板）**：开机自动握手成功 → 摇杆/自动触发 → 本地生成中文 → `speech/text` 气泡下发。日志摘要：
 > `hello from pet p4-e8f60ae8aa68` → `ack sent, handshake complete` → `[ai] 你好！我是一个AI助手，我是一个虚拟`。
@@ -239,7 +239,7 @@ TF 卡根目录：
 
 ## ⚠️ 已知限制
 
-- 速度 **0.38 tok/s**，单句回复需要数十秒；适合「低频互动」而非实时对话。
+- 速度 **0.465 tok/s**，单句回复需要数十秒；适合「低频互动」而非实时对话。
 - q3e4 量化后质量有限，短 prompt 可能不连贯；完整指令效果更好。
 - 无语音 ASR/TTS、无 Agent 状态跟随——这些依赖 PC/云端，本方案主动放弃。
 - TF 卡质量和卡槽接触直接影响启动耗时，建议正品卡。
