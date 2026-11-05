@@ -125,7 +125,7 @@ python tools/convert_minimind.py --profile q3e4 \
 
 | 指标 | 值 |
 |---|---|
-| 解码速度 | **2,152 ms/token（0.465 tok/s）**，累计 2.61× 于标量基线 5,622 ms |\n| GEMV 占比 r | **0.985**（精确口径，含 lm_head） |\n| PSRAM 顺序读带宽 | **90.8 MB/s**（1 MB 微基准） |\n| 设备/主机 CE 对拍 | 逐窗口 **Δ<0.001** |\n| 30-prompt 规则评分 | q3e4 **80%**（fp32 80%）、q2 **0%** |
+| 解码速度 | **2,152 ms/token（0.465 tok/s）**，累计 2.61× 于标量基线 5,622 ms |\n| GEMV 占比 r | **0.985**（精确口径，含 lm_head） |\n| PSRAM 顺序读带宽 | **95.9 MB/s**（1 MB 微基准） |\n| 设备/主机 CE 对拍 | 逐窗口 **Δ<0.001** |\n| 30-prompt 规则评分 | q3e4 **80%**（fp32 80%）、q2 **0%** |
 | prompt 处理 | 与逐 token 同速（无 batch prefill） |
 | 模型加载 | 20.6 s（TF 卡条件相关） |
 | PSRAM 占用 | ≈29.66 MiB / 32 MiB |
