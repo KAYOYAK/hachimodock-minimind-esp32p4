@@ -148,7 +148,7 @@ Instrumenting the packed GEMV path with cycle counters gives a GEMV share $r=0.9
 2,639-ms build; after hoisting, the measured share is $r=0.985$. For the format change, Amdahl's law with $r=0.988$ and a 2.13$\times$ kernel gain predicts $1/((1-r)+r/2.13)=1.97\times$ end-to-end (observed 2.13$\times$); for the hoisting pass, $r=0.985$ and a 1.23$\times$ kernel gain predict 1.22$\times$ (observed 1.23$\times$), so kernel gains pass through almost unchanged. Counting one full read
 of packed weights (28.63~MB) plus one complete KV pass (2.36~MB) gives 30.99~MB/token, i.e.
 13.3--14.4~MB/s at the two operating points, while the weight-only rate during GEMV is
-10.98--13.3~MB/s---far below the 90.8~MB/s sequential-read microbenchmark. The scalar
+10.98--13.3~MB/s---far below the 95.9~MB/s sequential-read microbenchmark. The scalar
 unpack-plus-dot instruction stream, not memory bandwidth, is therefore the limiting factor:
 a bandwidth-bound design would call for a different storage format, whereas an
 instruction-bound one motivates kernel vectorization or wider unpacking.
@@ -209,6 +209,11 @@ q4 (reference) & 36,005,248 & 6.949 & 1.000 & 73.3\% & n/a \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+Two further configurations with larger headroom also satisfy the bound but trade accuracy:
+mix42 (24.80~MB; embedding/attention q4, all FFN q2) reaches CE 7.673 (1.104$\times$ of q4) and a
+60.0\% rule score, and mix432 (26.67~MB; FFN down q3) reaches 7.467 (1.075$\times$) and 66.7\%,
+so the frontier below q3e4 is graded rather than a single jump.
 
 \textbf{Positioning (Table~\ref{tab:compare}).} The closest points are a sparsity-assisted MoE
 with partial residency and a boot-time host transfer, and vector-kernel acceleration on models
