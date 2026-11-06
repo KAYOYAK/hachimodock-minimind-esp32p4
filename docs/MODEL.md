@@ -117,7 +117,7 @@ python tools/convert_minimind.py --profile q3e4 \
 
 1. **零拷贝打包权重**：`pk` 指向 PSRAM 中的 KMCU 镜像，按块现场反量化，arena 仅 58 KB；
 2. **QK-norm**：Qwen3 的 q_norm/k_norm 在 GEMV 后、RoPE 前按 head 应用；
-3. **int16 激活量化 GEMV**：激活量化到 int16，权重解包 int8 做整数点积 → 5,622 → **2,639 ms/token（2.13×）**；\n4. **激活量化外提 / offset 消除**：lm_head 的激活量化从 6400 行重复调用外提为每 token 一次，GEMV 用块和消除逐权重 offset → **2,152 ms/token（累计 2.61×）**，CE 逐位不变；
+3. **int16 激活量化 GEMV**：激活量化到 int16，权重解包 int8 做整数点积 → 5,622 → **2,639 ms/token（2.13×）**；\n4. **激活量化外提 / offset 消除**：lm_head 的激活量化从 6400 行重复调用外提为每 token 一次，GEMV 用块和消除逐权重 offset → 2,152 ms/token（累计 2.61×），CE 不变；\n5. **批量解包 / 4 路展开 / `-O3`**：q4/q3/q2 全部 4 累加器 + 常量移位，两行同时计算，`-O3` 编译 → **1,612 ms/token（累计 3.49×）**；
 4. KV cache FP32，ctx=96（约 2.36 MB PSRAM）；
 5. 任务栈按实测调整（host 12 KB / 推理 16 KB），避免栈保护崩溃。
 
@@ -125,7 +125,7 @@ python tools/convert_minimind.py --profile q3e4 \
 
 | 指标 | 值 |
 |---|---|
-| 解码速度 | **2,152 ms/token（0.465 tok/s）**，累计 2.61× 于标量基线 5,622 ms |\n| GEMV 占比 r | **0.985**（精确口径，含 lm_head） |\n| PSRAM 顺序读带宽 | **95.9 MB/s**（1 MB 微基准） |\n| 设备/主机 CE 对拍 | 逐窗口 **Δ<0.001** |\n| 30-prompt 规则评分 | q3e4 **80%**（fp32 80%）、q2 **0%** |
+| 解码速度 | **1,612 ms/token（0.620 tok/s）**，累计 **3.49×** 于标量基线 5,622 ms |\n| GEMV 占比 r | **0.977**（最终构建，含 lm_head） |\n| PSRAM 顺序读带宽 | **95.9 MB/s**（1 MB 微基准） |\n| 设备/主机 CE 对拍 | 逐窗口 **Δ<0.001** |\n| 30-prompt 规则评分 | q3e4 **80%**（fp32 80%）、q2 **0%** |
 | prompt 处理 | 与逐 token 同速（无 batch prefill） |
 | 模型加载 | 20.6 s（TF 卡条件相关） |
 | PSRAM 占用 | ≈29.66 MiB / 32 MiB |
