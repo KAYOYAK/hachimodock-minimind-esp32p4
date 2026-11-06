@@ -1,8 +1,8 @@
-# Response to simulated reviews — revision plan (v2 draft, 2026-11-06)
+# Response to simulated reviews — revision plan (v3 draft, 2026-11-06)
 
 > Note: the eight review documents are **AI-simulated** (provided by the author's external
 > prompts), not real IEEE reviews. This file maps every substantive point to its disposition in
-> the v2 manuscript draft. The v2 draft is **not** submitted; it is prepared for the real
+> the v3 manuscript draft. The v3 draft is **not** submitted; it is prepared for the real
 > revision round if a Major Revision decision arrives.
 
 ## Legend
@@ -70,13 +70,13 @@
 | "Introduction repeats a paragraph / 'on a 26 microcontroller'" | Not present in the submitted PDF; "26" is a line number |
 | "5,622 ms expanded FP32 baseline is physically impossible" | The physical-impossibility point is valid for an *expanded copy*; the measurement was an earlier **packed** path with per-weight float dequantization. v2 relabels it and describes it; a rebuilt same-board baseline is deferred |
 
-## F. Deferred experiments (needed only if the real revision asks)
+## F. Experiments completed in v3 (2026-11-06 evening)
 
-1. Rebuild a float-dequant baseline variant on the board (3 runs).
-2. 192-token-window CE for all configurations (currently 96-token windows; deployment is 192).
-3. Prompt set expanded to ≥100 with Wilson CIs and per-prompt pass/fail.
-4. Public held-out corpus CE / bits-per-byte and one small instruction-following evaluation.
-5. Same-access-pattern memory-only control or PMU/cache counters for the bandwidth argument.
-6. UART boot log to itemize the 209,860 B runtime allocation (currently reasoned, not logged).
-7. FP16-vs-FP32 K/V latency on the final build.
-8. Energy-per-token (needs a USB power meter).
+1. ✅ Row-expanded fp32 baseline re-measured on the same board: 5,833 ms/token (3 runs).
+2. ✅ 192-token-window CE for all non-degenerate configurations; ordering unchanged.
+3. ✅ 100-prompt set with Wilson CIs and per-prompt responses (artifact).
+4. ✅ Public English (Apache-2.0) CE and public MiniMind-3 checkpoint anchor (ZH/EN).
+5. ✅ Same-access-pattern read-only control: 600 ms/token (GEMV 519 ms, 55 MB/s) vs 1,575 ms real GEMV.
+6. ✅ UART boot log itemizes the full PSRAM budget (209,860 B runtime + 538,656 B tokenizer; 1,814,172 B free at ready).
+7. ❌ FP16-vs-FP32 K/V latency on the final build (not re-run; CE effect measured).
+8. ❌ Energy-per-token (no USB power meter available).
