@@ -182,7 +182,7 @@ TF 卡根目录：
   tokenizer.bin   # 6400 词表 ByteLevel BPE 分词器
 ```
 
-把卡插入板子，上电后约 20 秒模型加载完成、与哈基米机自动握手，按摇杆中键即可触发本地 AI 回复。
+把卡插入板子，上电后约 20 秒模型加载完成、与哈基米机自动握手，**按 SW1 键**即可触发本地 AI 回复（气泡显示在宠物屏幕上）。
 
 ---
 
@@ -280,3 +280,18 @@ TF 卡根目录：
 
 下载后放入 TF 卡根目录即可；校验：
 `feb574f9...  model.kmcu` / `80db508d...  tokenizer.bin`
+
+### 按键与摇杆映射（2026-11-06 实测，官方 v3 固件 + CH343 4 Mbaud）
+
+| 物理操作 | 设备上报 event / action | P4 侧行为 |
+|---|---|---|
+| **SW1 短按** | `button.sw1.short_press` / `page_enter` | **触发一次本地 AI 生成**（唯一触发键） |
+| SW2 短按 | `button.sw2.short_press` / `component_center` | 仅记录，不触发 |
+| SW3 短按 | `button.sw3.short_press` / `page_back` | 仅记录，不触发 |
+| 摇杆中键按下 | `button.encoder.short_press` / `page_enter` | 仅记录（触发默认关） |
+| 摇杆上 / 下 | `joystick.up` / `joystick.down` → `session_previous` / `session_next` | 仅记录（设备本地切会话） |
+| 旋钮左 / 右 | `knob.rotate_ccw` / `knob.rotate_cw` → `session_previous` / `session_next` | 仅记录 |
+
+> 触发策略是「只认 SW1 短按」：摇杆/旋钮/其他键继续交给设备本地处理，避免误触发生成。
+> 生成完成后通过 `speech/text` 下发 `displayContent`，宠物屏幕显示气泡；状态依次为
+> `thinking → writing → waiting_user`。
