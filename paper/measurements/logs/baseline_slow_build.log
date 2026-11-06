@@ -1,0 +1,136 @@
+ESP-ROM:esp32p4-eco2-20240710
+Build:Jul 10 2024
+rst:0x17 (CHIP_USB_UART_RESET),boot:0x31f (SPI_FAST_FLASH_BOOT)
+Core0 Saved PC:0x4000ebde
+Core1 Saved PC:0x4ff03fd4
+SPI mode:DIO, clock div:1
+load:0x4ff33ce0,len:0x1524
+load:0x4ff28ed0,len:0xf58
+load:0x4ff2bbd0,len:0x35a4
+entry 0x4ff28eda
+I (27) boot: ESP-IDF v6.1-rc1-dirty 2nd stage bootloader
+I (28) boot: compile time Nov  5 2026 21:21:41
+I (28) boot: Multicore bootloader
+I (30) boot: chip revision: v1.3
+I (31) boot: efuse block revision: v0.3
+I (35) boot.esp32p4: SPI Speed      : 80MHz
+I (39) boot.esp32p4: SPI Mode       : DIO
+I (42) boot.esp32p4: SPI Flash Size : 16MB
+I (46) boot: Enabling RNG early entropy source...
+I (51) boot: Partition Table:
+I (53) boot: ## Label            Usage          Type ST Offset   Length
+I (60) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+I (66) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+I (73) boot:  2 factory          factory app      00 00 00010000 00400000
+I (80) boot: End of partition table
+I (83) esp_image: segment 0: paddr=00010020 vaddr=40040020 size=0fab0h ( 64176) map
+I (100) esp_image: segment 1: paddr=0001fad8 vaddr=30100000 size=000b4h (   180) load
+I (102) esp_image: segment 2: paddr=0001fb94 vaddr=4ff00000 size=00484h (  1156) load
+I (106) esp_image: segment 3: paddr=00020020 vaddr=40000020 size=3b388h (242568) map
+I (147) esp_image: segment 4: paddr=0005b3b0 vaddr=4ff00484 size=0eff0h ( 61424) load
+I (159) esp_image: segment 5: paddr=0006a3a8 vaddr=4ff0f480 size=033a4h ( 13220) load
+I (166) boot: Loaded app from partition at offset 0x10000
+I (166) boot: Disabling RNG early entropy source...
+I (178) hex_psram: vendor id    : 0x0d (AP)
+I (178) hex_psram: Latency      : 0x01 (Fixed)
+I (179) hex_psram: DriveStr.    : 0x00 (25 Ohm)
+I (179) hex_psram: dev id       : 0x03 (generation 4)
+I (184) hex_psram: density      : 0x07 (256 Mbit)
+I (188) hex_psram: good-die     : 0x06 (Pass)
+I (192) hex_psram: SRF          : 0x02 (Slow Refresh)
+I (197) hex_psram: BurstType    : 0x00 ( Wrap)
+I (201) hex_psram: BurstLen     : 0x03 (2048 Byte)
+I (206) hex_psram: BitMode      : 0x01 (X16 Mode)
+I (210) hex_psram: Readlatency  : 0x04 (14 cycles@Fixed)
+I (215) hex_psram: DriveStrength: 0x00 (1/1)
+I (219) MSPI Timing: Enter psram timing tuning
+I (392) esp_psram: Found 32MB PSRAM device
+I (392) esp_psram: Speed: 200MHz
+I (395) hex_psram: psram CS IO is dedicated
+I (396) cpu_start: Multicore app
+I (1303) esp_psram: SPI SRAM memory test OK
+I (1313) cpu_start: GPIO 38 and 37 are used as console UART I/O pins
+I (1313) cpu_start: Pro cpu start user code
+I (1314) cpu_start: cpu freq: 360000000 Hz
+I (1316) app_init: Application information:
+I (1319) app_init: Project name:     minimind_p4
+I (1324) app_init: App version:      1
+I (1327) app_init: Compile time:     Nov  6 2026 17:02:50
+I (1332) app_init: ELF file SHA256:  686f2ba12...
+I (1337) app_init: ESP-IDF:          v6.1-rc1-dirty
+I (1341) efuse_init: Min chip rev:     v1.0
+I (1345) efuse_init: Max chip rev:     v1.99 
+I (1349) efuse_init: Chip rev:         v1.3
+I (1353) heap_init: Initializing. RAM available for dynamic allocation:
+I (1360) heap_init: At 4FF1BD50 len 0001F270 (124 KiB): RETENT_RAM
+I (1366) heap_init: At 4FF3AFC0 len 00004BF0 (18 KiB): RAM
+I (1371) heap_init: At 4FF40000 len 00060000 (384 KiB): RAM
+I (1376) heap_init: At 50108080 len 00007F80 (31 KiB): RTCRAM
+I (1382) heap_init: At 301000B4 len 00001F4C (7 KiB): SPM
+I (1387) esp_psram: Adding pool of 32768K of PSRAM memory to heap allocator
+W (1394) spi_flash: Detected boya flash chip but using generic driver. For optimal functionality, enable `SPI_FLASH_SUPPORT_BOYA_CHIP` in menuconfig
+I (1406) spi_flash: detected chip: generic
+I (1410) spi_flash: flash io: dio
+I (1414) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (1420) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (1433) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations
+
+==== MiniMind-3 on ESP32-P4 (offline) ====
+PSRAM: 33554432 bytes
+I (1453) SD_HOST: src_freq_hz: 160000000
+SD mounted, 29710 MB
+T_APP mount=53 ms
+model size: 28632448 bytes
+model buffer: 0x48001e44
+read 8 MB
+read 16 MB
+read 24 MB
+model read done: 28632448/28632448, 19938 ms
+T_APP model=19997 ms
+T_APP kernel=20067 ms
+tokenizer loaded
+
+=== BENCH (KM_BENCH) ===
+STEPUS 0 4361689
+STEPUS 1 4363636
+STEPUS 2 4365120
+STEPUS 3 4366579
+STEPUS 4 4367986
+STEPUS 5 4369623
+STEPUS 6 4370807
+STEPUS 7 4372260
+bench: 8 steps in 34937.7 ms => 4367.22 ms/token (0.229 tok/s)
+bench: gemv=67614.5 ms, 8451.81 ms/token, r=1.935, weight_MBps=0.4
+
+=== MEASURE MODE (bench/ppl/rules/replace) ===
+M> STEPUS 0 4361426
+STEPUS 1 4363691
+STEPUS 2 4365100
+STEPUS 3 4366628
+STEPUS 4 4367991
+STEPUS 5 4369480
+STEPUS 6 4370840
+STEPUS 7 4372242
+bench: 8 steps in 34937.4 ms => 4367.18 ms/token (0.229 tok/s)
+bench: gemv=67614.2 ms, 8451.77 ms/token, r=1.935, weight_MBps=0.4
+M> STEPUS 0 4361416
+STEPUS 1 4363734
+STEPUS 2 4365155
+STEPUS 3 4366626
+STEPUS 4 4367939
+STEPUS 5 4369523
+STEPUS 6 4370857
+STEPUS 7 4372212
+bench: 8 steps in 34937.5 ms => 4367.19 ms/token (0.229 tok/s)
+bench: gemv=67614.4 ms, 8451.80 ms/token, r=1.935, weight_MBps=0.4
+M> STEPUS 0 4361510
+STEPUS 1 4363695
+STEPUS 2 4365207
+STEPUS 3 4366555
+STEPUS 4 4368000
+STEPUS 5 4369637
+STEPUS 6 4370919
+STEPUS 7 4372086
+bench: 8 steps in 34937.6 ms => 4367.20 ms/token (0.229 tok/s)
+bench: gemv=67614.3 ms, 8451.79 ms/token, r=1.935, weight_MBps=0.4
+M> 
