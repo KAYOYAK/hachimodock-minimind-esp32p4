@@ -21,7 +21,7 @@
 **证据**：`board_config.h`（BOARD_CTX_TOKENS=192）、`logs/measure_kvfp16.log`、`logs/measure_kv192.log`。
 
 ## R5. “0.620 tok/s 的瓶颈归因有证据吗？”
-**回应**：实测 r=0.977（最终构建，含 lm_head，GEMV 1,575 ms / 总 1,612 ms）；三个构建 r=0.988/0.985/0.977，Amdahl 预测（r 与 kernel 2.13×/1.23×/1.34×）分别 1.97×/1.22×/1.33×，与实测 2.13×/1.23×/1.34× 一致。GEMV 有效权重流量 18.2 MB/s（含 KV 19.2），PSRAM 顺序读微基准 95.9 MB/s → 瓶颈仍是解包+整数点积指令流，不是带宽。
+**回应**：实测 r=0.977（最终构建，含 lm_head，GEMV 1,575 ms / 总 1,612 ms）；三个构建 r=0.988/0.985/0.977，Amdahl 预测（r 与 kernel 2.13×/1.23×/1.33×）分别 2.10×/1.22×/1.32×；用 baseline share f=0.994 得 2.13×，与实测 2.13× 一致（这是归因，不是独立预测）。GEMV 有效权重流量 18.2 MB/s（含 KV 19.2），PSRAM 顺序读微基准 95.9 MB/s → 瓶颈仍是解包+整数点积指令流，不是带宽。
 **证据**：Table II、`logs/measure_q3e4_r.log`、`logs/measure_bw4.log`。
 
 ## R6. “为什么选 q3e4 而不是 mixed / 更小配置？”
