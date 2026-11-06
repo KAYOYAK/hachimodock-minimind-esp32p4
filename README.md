@@ -25,7 +25,7 @@
 具体工作：
 
 1. **模型全流程自研**：在本机 RTX 5070 Ti Laptop 上**从零训练** MiniMind-3 Zero（pre-train 1 epoch + SFT 1 epoch，共 **6h32m**，最终 loss 2.01 / 1.71），并用官方数据复刻医药 **LoRA**（rank=16，7,900 step，loss 1.2564）；再做**自定义混合位宽量化**（q3e4：embed q4，attention/FFN q3），把 63.91M 参数压到 **28.6 MB**，在 ESP32-P4 的 32 MB PSRAM 中全驻运行。
-2. **端侧推理引擎**：基于 Kestrel-MCU（Apache-2.0）移植到 ESP32-P4，补齐 Qwen3 的 **q_norm / k_norm**，实现 KMCU 打包权重的零拷贝 GEMV；int16 激活整数点积 + 激活量化外提/offset 消除，累计 **2.61×** 于标量基线（其中存储格式贡献 2.13×）。
+2. **端侧推理引擎**：基于 Kestrel-MCU（Apache-2.0）移植到 ESP32-P4，补齐 Qwen3 的 **q_norm / k_norm**，实现 KMCU 打包权重的零拷贝 GEMV；int16 激活整数点积 + 激活量化外提/offset 消除，累计 **3.62×**（最终构建 0.620 tok/s） 于标量基线（其中存储格式贡献 2.13×）。
 3. **替代官方 PC 客户端**：在 ESP32-P4 上实现 USB Host + CH343 驱动 + HachimoDock 官方 JSONL 协议（`hello / ack / heartbeat / session/current / speech/text / input/event / debug/screenshot`），让 P4 单板直接驱动哈基米机。
 4. **协议细节逆向验证**：确认 CH343 的 4 Mbaud 运行时链路、DTR/RTS 与 P4 EN/GPIO35 的对应关系，以及乐鑫 CH34x host 驱动缺失的 CH343 vendor 初始化（`0xA1` LCR+波特率、`0xA4` 释放 DTR/RTS）。
 5. **完整闭环**：宠物摇杆输入 → `input/event` → P4 本地生成中文回复 → `speech/text` 气泡 → 宠物屏幕显示，全程离线、无 PC、无网络。
@@ -239,7 +239,7 @@ TF 卡根目录：
 
 ## ⚠️ 已知限制
 
-- 速度 **0.465 tok/s**，单句回复需要数十秒；适合「低频互动」而非实时对话。
+- 速度 **0.620 tok/s**，单句回复需要数十秒；适合「低频互动」而非实时对话。
 - q3e4 量化后质量有限，短 prompt 可能不连贯；完整指令效果更好。
 - 无语音 ASR/TTS、无 Agent 状态跟随——这些依赖 PC/云端，本方案主动放弃。
 - TF 卡质量和卡槽接触直接影响启动耗时，建议正品卡。
