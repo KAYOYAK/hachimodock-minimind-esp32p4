@@ -13,11 +13,12 @@
 
 \title{Fully-Resident Weight Storage for Mixed-Precision\\ SLM Inference on a 32-MB PSRAM MCU}
 
-\author{<Author Name>%
-\thanks{<Affiliation, city, country; e-mail>. Manuscript received <date>.}}
+\author{ShiZhou Xu%%
+\thanks{Guangxi Medical University, Nanning, China; e-mail: X16717701114@outlook.com.
+Manuscript received November 6, 2026.}}
 
 \markboth{IEEE Embedded Systems Letters}%
-{<Author>: Fully-Resident Weight Storage for Mixed-Precision SLM Inference}
+{S.~Xu: Fully-Resident Weight Storage for Mixed-Precision SLM Inference}
 
 \maketitle
 
@@ -39,8 +40,7 @@ auditable line by line and the artifact is open.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Edge AI, on-device inference, large language models, mixed-precision quantization, PSRAM,
-microcontrollers, memory capacity.
+Edge AI, on-device inference, large language models, mixed-precision quantization, PSRAM.
 \end{IEEEkeywords}
 
 \section{Introduction}
@@ -65,8 +65,8 @@ This letter answers two questions within one concrete design point: how far a de
 compressed and still reside fully in 32~MB of PSRAM, and what latency that residency costs once
 the storage problem is solved. We quantify the deployment frontier with a pre-registered
 accuracy bound, measure the decode-time split between GEMV and the rest of the forward pass,
-and show that the GEMV kernel---not PSRAM bandwidth---dominates latency, which is why a 2.13$\times$
-kernel optimization appears almost one-to-one at the system level. We do not claim a new
+and show that the GEMV kernel---not PSRAM bandwidth---dominates latency, which is why
+kernel-level gains from 2.13$\times$ to 3.49$\times$ appear almost one-to-one at the system level. We do not claim a new
 quantization method or a new system architecture: the contribution is an auditable capacity point,
 a measured latency-cost attribution, and a reproducible artifact.
 
@@ -291,7 +291,7 @@ validity. The usage model is single-turn: prompt prefill is token-by-token and r
 short, so the reported throughput is not a conversational latency. The artifact,
 training logs, evaluation scripts and the self-trained q3e4 image are public for reproduction.
 
-\textbf{Reproducibility and artifact.} The public repository contains the self-trained q3e4 image
+\textbf{Reproducibility and artifact.} The public repository \url{https://github.com/KAYOYAK/hachimodock-minimind-esp32p4} contains the self-trained q3e4 image
 (SHA-256 \texttt{feb574f9\ldots}), the firmware sources for the packed GEMV kernel and the USB
 host bridge, the 30 evaluation prompts with their rule checker, the windowed-CE scripts, the
 held-out text and token ids, and the five alternative quantized images used for the frontier
@@ -313,7 +313,8 @@ ESP32-P4 firmware implementation (model loading, packed-weight GEMV kernels, USB
 bridge), quantization and measurement tooling (Sections II--III), experiment automation, and
 manuscript editing. The AI system is not an author. The author independently verified all
 generated code, measurements and text and takes full responsibility for the accuracy,
-originality and integrity of this work.
+originality and integrity of this work. This work received no external funding, and the author
+declares no conflict of interest.
 
 \begin{thebibliography}{18}
 \bibitem{pforllm} cyfrit, ``PFor: Offline 180.9M-parameter LLM and agent inference on ESP32-P4,'' GitHub repository, 2026. [Online]. Available: https://github.com/cyfrit/p-for-llm
