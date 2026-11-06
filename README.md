@@ -296,11 +296,8 @@ TF 卡根目录：
 > 生成完成后通过 `speech/text` 下发 `displayContent`，宠物屏幕显示气泡；状态依次为
 > `thinking → writing → waiting_user`。
 
-## 📄 论文草稿（IEEE Embedded Systems Letters 投稿准备中）
+## 📄 论文与评测（artifact）
 
-- 标题：*Fully-Resident Weight Storage for Mixed-Precision SLM Inference on a 32-MB PSRAM MCU*
-- 目录：[`paper/`](paper/) —— LaTeX 源、编译说明、Fig. 1、全部测量数据与复现脚本、AI 使用披露、投稿清单；
-- 已本地编译验证：**4 页**（IEEEtran，ESL 页数上限内），PDF：[`paper/draft.pdf`](paper/draft.pdf)；
-- **v3 修订稿**（针对 8 份模拟审稿意见 + 追加真机测量，未重新投稿）：[`paper/ESL-LETTER-DRAFT-v3.tex`](paper/ESL-LETTER-DRAFT-v3.tex) / [`paper/draft-v3.pdf`](paper/draft-v3.pdf)；修复清单见 [`paper/REVISION-CHECKLIST-2026-11-06.md`](paper/REVISION-CHECKLIST-2026-11-06.md)；
-- 完整 7 套量化镜像：[`v0.2.1 Release`](https://github.com/KAYOYAK/hachimodock-minimind-esp32p4/releases/tag/v0.2.1)；
-- 还差：作者信息、AI 工具清单确认、参考文献核对（详见 `paper/README.md`）。
+- 论文当前在 **IEEE Embedded Systems Letters** 审稿中；审稿期间不在公开仓库放论文正文/草稿；
+- 评测脚本与数据保留在 [paper/](paper/)（CE 脚本、prompt 集、测量 CSV/日志）；
+- 部署 artifact（模型、固件、分词器）见根目录与 [0.2.1](https://github.com/KAYOYAK/hachimodock-minimind-esp32p4/releases/tag/v0.2.1)。
