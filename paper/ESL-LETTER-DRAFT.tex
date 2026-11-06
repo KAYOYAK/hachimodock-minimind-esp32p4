@@ -50,16 +50,16 @@ SLM needs about 244~MiB in FP16 and 128~MiB in INT8, both far beyond on-package 
 weights must therefore be compressed until they fit, and any configuration that does not fit
 is simply not a candidate, regardless of its arithmetic quality.
 
-Prior work avoids this wall in two ways. A 180.9M-parameter MoE design (p-for-llm) trades
+Prior work avoids this wall~\cite{memorywall} in two ways. A 180.9M-parameter MoE design (p-for-llm)~\cite{pforllm} trades
 dense residency for sparsity: only the routed experts are active, its $\sim$44~MiB of state
 is split between flash XIP and PSRAM, and part of the PSRAM weights are transferred from a
 host over USB at boot, so the host is absent during inference yet still required at startup;
-its $\sim$9~tok/s reflects top-1 routing over 29 experts per layer. The PIE series instead
+its $\sim$9~tok/s reflects top-1 routing over 29 experts per layer. The PIE series~\cite{pie} instead
 accelerates kernels on models far below the capacity boundary (0.61$\rightarrow$4.31~tok/s)
-and does not address how much dense model can reside. A recent survey of MCU LLM systems
+and does not address how much dense model can reside. A recent survey of MCU LLM systems~\cite{survey}
 finds fully-on-chip evidence only at the 256--412~KB scale and one 5.81~MB ternary ViT with
 external PSRAM; a fully-resident \emph{dense} 27.3~MiB model on an ESP32-class device falls
-in a region that is not covered.
+in a region that is not covered. For scale, an ESP32-S3 board has been reported at 22.6~tok/s on a TinyStories-scale model~\cite{edgebench}.
 
 This letter answers two questions within one concrete design point: how far a dense SLM can be
 compressed and still reside fully in 32~MB of PSRAM, and what latency that residency costs once
@@ -71,10 +71,10 @@ quantization method or a new system architecture: the contribution is an auditab
 a measured latency-cost attribution, and a reproducible artifact.
 
 \section{Method}
-\textbf{Quantization scheme.} q3e4 stores the token embedding and the tied output layer at
+\textbf{Quantization scheme.} Following the group-wise post-training quantization line~\cite{gptq,awq,llmint8}, q3e4 stores the token embedding and the tied output layer at
 q4\_0 (18 bytes per 32 weights: one fp16 block scale plus 16 packed nibbles) and all attention
 and FFN linear projections at q3\_0 (14 bytes per 32 weights: fp16 scale plus 12 packed
-3-bit values). Activations are quantized to int16 per GEMV call; RMSNorm weights, biases and
+3-bit values). Activations are quantized to int16 per GEMV call~\cite{int16}; RMSNorm weights, biases and
 the KV cache remain FP32. A KMCU image is a single flat file with a 4,480-byte header followed
 by per-tensor packed blocks; the q3e4 image is 28,632,448 bytes (27.3~MiB).
 
@@ -109,8 +109,14 @@ Sec.~III reports the measured effect of the FP16 cache).
 \textbf{Model.} The weights are trained from scratch on a local 12-GB GPU: pre-training
 (39,695 steps, final loss 2.01) and supervised fine-tuning (56,608 steps, final loss 1.71),
 followed by a separate LoRA reproduction experiment (rank 16, 7,900 steps, loss 1.2564) and
-the q3e4 quantization described above. A QK-norm correction in the deployed kernel is an
+the q3e4 quantization described above. The architecture follows Qwen3-style QK-norm~\cite{qwen3} and the MiniMind training recipe~\cite{minimind}; a QK-norm correction in the deployed kernel is an
 enabling fix, not a contribution.
+\textbf{Hardware and integration.} The host is an ALINTEK ESP32-P4 board (360~MHz, 16~MB flash,
+32~MB PSRAM)~\cite{psram}; the 28.63~MB KMCU image and tokenizer live on a microSD card and are
+streamed into PSRAM at boot. The board acts as a USB host for the HachimoDock desktop
+pet~\cite{hachimodock} through a CH343 bridge at 4~Mbaud: pet input events arrive as JSON
+messages and generated replies are returned as incremental \texttt{speech/text} bubbles. All
+inference runs on the board; no PC or network participates after flashing.
 
 \section{Results}
 \textbf{Memory budget (Table~\ref{tab:budget}).} All weights and caches are allocated once at
@@ -139,7 +145,18 @@ PSRAM total & $\leq$ 33,554,432 \\
 \end{tabular}
 \end{table}
 
-\textbf{Decode latency and GEMV share (Table~\ref{tab:gemv}).} The storage-format change
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_frontier_latency.png}
+\caption{(a) Capacity--accuracy frontier under the 32-MB PSRAM budget: windowed CE
+relative to q4 versus model image size, with the pre-registered $1.15\times$ bound and the
+memory cliff; q3e4 is the deployment point. (b) Per-token decode latency over one 32-token
+run (mean 2,170~ms, p95 2,189~ms); the mild upward slope is attention over the growing K/V
+cache.}
+\label{fig:frontier}
+\end{figure*}
+
+\textbf{Decode latency and GEMV share (Table~\ref{tab:gemv}, Fig.~\ref{fig:frontier}b).} The storage-format change
 (int16 activations + zero-copy packed weights) reduces decode from the 5,622~ms/token
 scalar-expanded baseline to 2,639~ms/token (0.379~tok/s), a 2.13$\times$ kernel-level gain.
 Hoisting the per-token activation quantization out of the 6,400-row output-head loop and
@@ -179,7 +196,7 @@ off in modeling: on the same token prefix, one 192-token window scores CE 5.970 
 for resetting every 96 tokens (190/191 targets), i.e. about a 15\% reduction in CE
 (PPL 392 vs.\ 1,107).
 
-\textbf{Accuracy frontier (Table~\ref{tab:frontier}).} Host simulation with the identical windowed recipe (each 96-token window
+\textbf{Accuracy frontier (Table~\ref{tab:frontier}, Fig.~\ref{fig:frontier}a).} Host simulation with the identical windowed recipe (each 96-token window
 scored independently, matching the deployed context) places q4 at CE $=6.949$ (PPL 1,042) and
 q3e4 at 7.087 (1.020$\times$, PPL 1,197); q2 reaches 10.074 (1.450$\times$, PPL 23,710), clearly
 beyond the pre-registered bound. On a second, English public corpus (Apache-2.0 license text,
@@ -234,7 +251,7 @@ constraint differences, and the reported throughputs are cited as reported by th
 Work & Model & Residency / boot & tok/s \\
 \midrule
 p-for-llm & 180.9M MoE & partial; USB boot & $\sim$9 \\
-PIE & -- & kernel accel.; no capacity study & 0.61--4.31 \\
+PIE & -- & kernel accel.; no capacity & 0.61--4.31 \\
 \textbf{This work} & 63.91M dense & \textbf{full 27.3 MiB; no host} & \textbf{0.465} \\
 \bottomrule
 \end{tabular}
@@ -264,6 +281,15 @@ tokens remains a conservative fallback. The model itself is deliberately small a
 quality is not the claim---accuracy measurements only delimit the feasible set. The artifact,
 training logs, evaluation scripts and the self-trained q3e4 image are public for reproduction.
 
+\textbf{Reproducibility and artifact.} The public repository contains the self-trained q3e4 image
+(SHA-256 \texttt{feb574f9\ldots}), the firmware sources for the packed GEMV kernel and the USB
+host bridge, the 30 evaluation prompts with their rule checker, the windowed-CE scripts, the
+held-out text and token ids, and the five alternative quantized images used for the frontier
+(mixed, q3, q4, mix42, mix432). Every number in Tables~I--IV can be regenerated from these
+files; the host simulation uses the identical block-32 recipe as the C kernel, and the
+host/device agreement above bounds the simulation error. The peak-PSRAM and bandwidth
+microbenchmarks are part of the measurement firmware and are documented in the runbook.
+
 \section{Conclusion}
 A 63.91M dense SLM can reside fully in 32~MB of PSRAM at 27.3~MiB with a 192-token context and
 no host participation, and the resulting latency is dominated by the packed GEMV kernel rather
@@ -280,20 +306,20 @@ generated code, measurements and text and takes full responsibility for the accu
 originality and integrity of this work.
 
 \begin{thebibliography}{18}
-\bibitem{pforllm} <p-for-llm authors>, ``<title>,'' <venue>, <year>.
-\bibitem{pie} <PIE authors>, ``<title>,'' <venue>, <year>.
-\bibitem{survey} <2026 survey authors>, ``A survey of language models on microcontrollers,'' <venue>, 2026.
+\bibitem{pforllm} cyfrit, ``PFor: Offline 180.9M-parameter LLM and agent inference on ESP32-P4,'' GitHub repository, 2026. [Online]. Available: https://github.com/cyfrit/p-for-llm
+\bibitem{pie} ``From 0.61 to 4.31 tok/s: A complete record of MCU-side LLM inference level-four optimization,'' EEWorld forum, Oct. 2026. [Online]. Available: \url{https://en.eeworld.com.cn/bbs/forum.php?mod=viewthread&tid=1369555}
+\bibitem{survey} M.~R.~Ramdhani, ``Language and transformer models with ESP32-class microcontrollers: A systematic review of hybrid deployment and on-device optimization,'' 2026. [Online]. Available: https://journals.unpad.ac.id/ijmt/article/view/72405
 \bibitem{qwen3} Qwen Team, ``Qwen3 technical report,'' arXiv:2505.09388, 2025.
 \bibitem{gptq} G.~Frantar, S.~Ashkboos, T.~Hoefler, and D.~Alistarh, ``GPTQ: Accurate post-training quantization for generative pre-trained transformers,'' in \emph{Proc. ICLR}, 2023.
 \bibitem{awq} J.~Lin \emph{et al.}, ``AWQ: Activation-aware weight quantization for on-device LLM compression and acceleration,'' in \emph{Proc. MLSys}, 2024.
 \bibitem{llmint8} T.~Dettmers, M.~Lewis, Y.~Belkada, and L.~Zettlemoyer, ``LLM.int8(): 8-bit matrix multiplication for transformers at scale,'' in \emph{Proc. NeurIPS}, 2022.
 \bibitem{psram} Espressif Systems, ``ESP32-P4 technical reference manual,'' 2025.
 \bibitem{minimind} Jingyaogong, ``MiniMind: train a small language model from scratch,'' GitHub repository, 2025. [Online]. Available: https://github.com/jingyaogong/minimind
-\bibitem{memorywall} <memory-wall / MCU storage hierarchy reference>, <venue>, <year>.
-\bibitem{edgebench} <edge transformer inference benchmark>, <venue>, <year>.
-\bibitem{int16} <int16 activation inference reference>, <venue>, <year>.
-\bibitem{ternaryvit} <ternary ViT on ESP32-S3 reference>, <venue>, <year>.
-\bibitem{hachimodock} <HachimoDock authors>, ``HachimoDock: open-source desktop pet,'' GitHub, 2025.
+\bibitem{memorywall} W.~Wulf and S.~McKee, ``Hitting the memory wall: Implications of the obvious,'' \emph{ACM SIGARCH Comput. Archit. News}, vol.~23, no.~1, pp.~20--24, 1995.
+\bibitem{edgebench} ``LLM on a microcontroller: ESP32-S3 at 22.6 tok/s,'' technical report, 2026. [Online]. Available: https://insiderllm.com/pdfs/llm-on-microcontroller-esp32-s3.pdf
+\bibitem{int16} B.~Jacob \emph{et al.}, ``Quantization and training of neural networks for efficient integer-arithmetic-only inference,'' in \emph{Proc. CVPR}, 2018.
+\bibitem{ternaryvit} S.~Ma, H.~Wang, L.~Ma, L.~Wang, W.~Wang, S.~Huang, L.~Dong, R.~Wang, J.~Xue, and F.~Wei, ``The era of 1-bit LLMs: All large language models are in 1.58 bits,'' arXiv:2402.17764, 2024.
+\bibitem{hachimodock} Y.~Wang \emph{et al.}, ``HachimoDock: An open-source desktop AI hardware,'' GitHub repository, 2026. [Online]. Available: https://github.com/YizhengWw/HachimoDock
 \end{thebibliography}
 
 \end{document}
