@@ -113,7 +113,7 @@ local-llm  quantization  qwen3  tiny-llm  desktop-pet  usb-host  embedded-ai
 | 主控 | ESP32-P4（rev v1.3），双核 360 MHz，16 MB Flash，**32 MB PSRAM** |
 | 模型 | MiniMind-3 架构，63.91M 参数，自训练 + LoRA + **q3e4 混合量化** |
 | 模型体积 | **28,632,448 B（27.3 MiB）**，全驻 PSRAM |
-| 推理速度 | **1,612 ms/token ≈ 0.620 tok/s**（q3e4，int16+零拷贝+量化外提+批量解包/4 路/-O3，累计 **3.49×** vs 标量基线 5,622 ms） |\n| 上下文 | **192 token**（FP16 K/V，KV 占用 2,359,296 B，与 96 token FP32 同预算） |\n| GEMV 占比 r | **0.977**（最终构建，含 lm_head） |\n| PSRAM 顺序读带宽 | **95.9 MB/s**（1 MB 微基准，下界） |\n| 设备/主机 CE 对拍 | 逐窗口 **Δ<0.001**（q3e4，windowed 96-token） |\n| 规则评分（30 prompts） | q3e4 **80%**（= fp32 80%）；q2 **0%** |
+| 推理速度 | **1,612 ms/token ≈ 0.620 tok/s**（q3e4，int16+零拷贝+量化外提+批量解包/4 路/-O3，累计 **3.62×** vs row-expanded fp32 baseline 5,833 ms（同板重测）） |\n| 上下文 | **192 token**（FP16 K/V，KV 占用 2,359,296 B，与 96 token FP32 同预算） |\n| GEMV 占比 r | **0.977**（最终构建，含 lm_head） |\n| PSRAM 顺序读带宽 | **95.9 MB/s**（1 MB 微基准，下界） |\n| 设备/主机 CE 对拍 | 逐窗口 **Δ<0.001**（q3e4，windowed 96-token） |\n| 规则评分（30 prompts） | q3e4 **80%**（= fp32 80%）；q2 **0%** |
 | 模型加载 | **20.6 s**（TF 卡 4-bit 40 MHz；受卡/卡槽影响） |
 | 设备协议 | 官方 `pet-usb-jsonl-v3`，CH343 4 Mbaud |
 | 功耗 | 裸板 ~0.2–0.5 A（5V），整机峰值 ~0.8–1 A |
@@ -301,6 +301,6 @@ TF 卡根目录：
 - 标题：*Fully-Resident Weight Storage for Mixed-Precision SLM Inference on a 32-MB PSRAM MCU*
 - 目录：[`paper/`](paper/) —— LaTeX 源、编译说明、Fig. 1、全部测量数据与复现脚本、AI 使用披露、投稿清单；
 - 已本地编译验证：**4 页**（IEEEtran，ESL 页数上限内），PDF：[`paper/draft.pdf`](paper/draft.pdf)；
-- **v2 修订稿**（针对 8 份模拟审稿意见修正，未重新投稿）：[`paper/ESL-LETTER-DRAFT-v2.tex`](paper/ESL-LETTER-DRAFT-v2.tex) / [`paper/draft-v2.pdf`](paper/draft-v2.pdf)；修复清单见 [`paper/REVISION-CHECKLIST-2026-11-06.md`](paper/REVISION-CHECKLIST-2026-11-06.md)；
+- **v3 修订稿**（针对 8 份模拟审稿意见 + 追加真机测量，未重新投稿）：[`paper/ESL-LETTER-DRAFT-v3.tex`](paper/ESL-LETTER-DRAFT-v3.tex) / [`paper/draft-v3.pdf`](paper/draft-v3.pdf)；修复清单见 [`paper/REVISION-CHECKLIST-2026-11-06.md`](paper/REVISION-CHECKLIST-2026-11-06.md)；
 - 完整 7 套量化镜像：[`v0.2.1 Release`](https://github.com/KAYOYAK/hachimodock-minimind-esp32p4/releases/tag/v0.2.1)；
 - 还差：作者信息、AI 工具清单确认、参考文献核对（详见 `paper/README.md`）。
