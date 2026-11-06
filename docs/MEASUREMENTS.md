@@ -143,3 +143,27 @@ python paper\host_rules.py
 
 - 位置效应：pos 0→31 延迟 +2.0%（attention 随 KV 增长）；外推 192 上下文约 +12%。
 - mixed 完整固件验证：30,401,920 B 模型在独立宠物固件中 `model read done / pet host started / USB host installed / auto demo / [ai]` 全部出现 → frontier 点在完整固件中可部署。
+
+## 9. v3 修订测量（2026-11-06 晚，真机）
+
+- **Row-expanded fp32 baseline（Table II 首行）**：每行展开到 4,096-float 缓冲后做点积（只驻留一行，不是把整个模型展开）：
+  **5,832.9 / 5,832.8 / 5,833.0 ms/token**（3 次 `/bench 8`），GEMV 5,444.6 ms/token；0.171 tok/s。
+- **最终构建**：1,612 ms/token（0.620 tok/s）；累计 **3.62×**（格式/激活 2.21×、外提 1.23×、批量解包 1.33×）。
+- **cycles/weight**：baseline 32.9 → int16 14.9 → 外提 12.1 → 最终 9.1（360 MHz × ms / 63.9M）。
+- **read-only 对照（同打包访问模式，只流式读、不解包/点积）**：**599.8 / 599.8 / 599.7 ms/token**，
+  GEMV 519.3 ms/token（≈55 MB/s）；真实 GEMV 1,575 ms → **约 2/3 的 decode 时间是解包+整数点积指令流**，不是 PSRAM 流量。
+- **PSRAM 全预算（UART 启动日志实测）**：
+  - q3e4 weights 28,632,448 B
+  - KV 192 tok FP16 2,359,296 B
+  - runtime PSRAM（SD/VFS + heap）209,860 B
+  - tokenizer tables 538,656 B
+  - **free at ready 1,814,172 B**（KV 初始化后中间值 2,352,828 B）
+  - 行和 = 33,554,432 B（闭合）；mixed 在 ready 时只剩 **44,700 B**，q3e4 余量约 **40×**。
+- **192-token 窗口 CE**（host，286 tokens）：fp32 6.279 / q4 6.258 / q3e4 6.390（q4 比 **1.021**）/
+  mixed 6.306（1.008）/ q3 6.406（1.024）/ q2 10.080（1.611），排序与 96 窗口一致。
+- **100-prompt 扩展评分（非预注册）**：fp32 66%、q4 59%、q3e4 63%（95% CI 53–72）、q3 59%、
+  mixed 68%、mix42 44%、mix432 52%、q2 0%；粗任务检查（math/code/translation）对非退化配置均为 1/10、5/10、1/10。
+  结论：30-prompt 的 80% 是筛选口径，不是通用准确率。
+- **公开 checkpoint 锚点**：同一 held-out 文本上，官方 MiniMind-3 fp32 CE 为 7.413（中文）/ 6.279（英文），
+  自训练模型为 6.973 / 5.404。
+
