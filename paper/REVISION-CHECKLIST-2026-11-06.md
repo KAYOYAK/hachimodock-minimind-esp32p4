@@ -13,7 +13,7 @@
 - ☑ **A4** 补 q3 的 rule score（host；跑 `host_rules.py` 加 q3 profile）
 - ☑ **A5** 把 "accuracy lower bound" 改名为 "well-formedness/degeneration score" 或明确五条规则；写进正文
 - ☑ **A6** 预注册：补 commit 时间戳 + `paper/PRE-REGISTRATION.md`（阈值 1.15×/80% 固定于 2026-11-04/05，早于 q3e4 设备分）；否则降级为 "pre-specified"
-- ◐ **A7** 限制/评测：正文注明无标准 benchmark、语料规模、prompt 构成（9 官方 + 21 自写）
+- ◐ **A7**（已补公开 checkpoint 锚点 + 数据集名；标准 benchmark 仍缺） 限制/评测：正文注明无标准 benchmark、语料规模、prompt 构成（9 官方 + 21 自写）
 
 ### 速度/延迟/归因
 - ☑ **B1** 统一最终 build：Table III q3e4 ms → 1,612；Table IV This work → 0.620；旧值只作中间 build 脚注
@@ -49,11 +49,11 @@
 
 ## P1 — 需要板子/短测量
 
-- ☐ **E1**（需板子：板子当前未连接，延后） 重建 float-dequant baseline（packed + 每权重浮点反量化）3 次 → 可辩护的 5,622 或新值；修正 Table II 标签
+- ☑ **E1**（需板子：板子当前未连接，延后） 重建 float-dequant baseline（packed + 每权重浮点反量化）3 次 → 可辩护的 5,622 或新值；修正 Table II 标签
 - ☐ **A4'** q3 的 host rule（已列 P0，此处仅提醒跑）
-- ☐ **F1** UART（COM4）抓启动日志：packed weights PSRAM free / KV 后 free → Table I 差额拆解
-- ☐ **F2** 同访问模式 read-only 对照或 PMU/CPI；cycles/weight（9.1）写进正文或 discussion
-- ☐ **F3** 可选：192-window CE 重测；prompt 集扩到 ≥100 + Wilson CI；标准语料 held-out CE；能量
+- ☑ **F1** UART（COM4）抓启动日志：packed weights PSRAM free / KV 后 free → Table I 差额拆解
+- ☑ **F2** 同访问模式 read-only 对照或 PMU/CPI；cycles/weight（9.1）写进正文或 discussion
+- ◐ **F3** 可选：192-window CE 重测；prompt 集扩到 ≥100 + Wilson CI；标准语料 held-out CE；能量
 - ☐ **F4** 可选：q3e4 最终 build 的 FP32 vs FP16 KV 延迟对照（3 次）
 
 ## P2 — 改稿与回复
