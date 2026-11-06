@@ -26,10 +26,10 @@ We show that mixed-precision quantization enables fully-resident weight storage 
 small language model (SLM) on a 32-MB PSRAM microcontroller. A 63.91M-parameter model
 quantized to q3e4 (embedding/output q4, attention and FFN q3) occupies \textbf{27.3 MiB}
 and runs entirely in on-package PSRAM with a \textbf{192-token} context window (FP16 K/V cache) and no host
-at inference time. Measured decode throughput is \textbf{0.465 tok/s} (2.15 s/token) after
-int16-activation, zero-copy packed GEMV plus activation-quantization hoisting, a
-\textbf{2.61$\times$} cumulative speedup over the scalar baseline (2.13$\times$ from the
-storage-format change and 1.23$\times$ from the hoisting pass); the GEMV kernel dominates
+at inference time. Measured decode throughput is \textbf{0.620 tok/s} (1.61 s/token) after int16-activation,
+zero-copy packed GEMV, activation-quantization hoisting, and a 32-bit batch-unpack /
+four-way-unrolled / \texttt{-O3} pass, a \textbf{3.49$\times$} cumulative speedup over the
+scalar baseline (2.13$\times$ storage format, 1.23$\times$ hoisting, 1.34$\times$ unpack); the GEMV kernel dominates
 decode time, so kernel-level gains pass through almost unchanged to end-to-end latency. A pre-registered
 accuracy lower bound (fixed-text cross-entropy within 1.15$\times$ of q4, plus a deterministic
 30-prompt rule score $\geq 80\%$) separates the feasible configurations: q2 crosses the
@@ -97,9 +97,10 @@ sensitive.
 resident footprint and add per-element traffic. Instead, the packed image is used in place:
 each 32-weight block is read from PSRAM, unpacked on the fly into signed integers, and dotted
 with the int16 activation vector; the fp16 block scale is applied to the integer partial sum.
-The inner loops read 32-bit words rather than individual 3-bit fields. The same kernel serves
-all linear layers and the tied output head, so the storage format and the compute path are
-consistent by construction.
+The inner loops unpack eight 3-bit fields from three bytes with constant shifts, keep four
+independent integer accumulators, and process two output rows per pass; the final build adds
+\texttt{-O3}. The same kernel serves all linear layers and the tied output head, so the storage
+format and the compute path are consistent by construction.
 
 \textbf{Context and KV budget.} The deployed context is 192 tokens with FP16 K/V caches:
 $2 \times 8 \times 192 \times 4 \times 96 \times 2$~B $=$ 2,359,296~B, i.e. the same PSRAM as a
@@ -151,7 +152,7 @@ PSRAM total & $\leq$ 33,554,432 \\
 \caption{(a) Capacity--accuracy frontier under the 32-MB PSRAM budget: windowed CE
 relative to q4 versus model image size, with the pre-registered $1.15\times$ bound and the
 memory cliff; q3e4 is the deployment point. (b) Per-token decode latency over one 32-token
-run (mean 2,170~ms, p95 2,189~ms); the mild upward slope is attention over the growing K/V
+run (mean 1,629~ms, p95 1,648~ms); the mild upward slope is attention over the growing K/V
 cache.}
 \label{fig:frontier}
 \end{figure*}
@@ -160,10 +161,14 @@ cache.}
 (int16 activations + zero-copy packed weights) reduces decode from the 5,622~ms/token
 scalar-expanded baseline to 2,639~ms/token (0.379~tok/s), a 2.13$\times$ kernel-level gain.
 Hoisting the per-token activation quantization out of the 6,400-row output-head loop and
-replacing per-weight offsets by block-sum corrections lowers it to
-\textbf{2,152~ms/token (0.465~tok/s)}, i.e. 2.61$\times$ cumulative, with bit-identical CE.
-Instrumenting the packed GEMV path with cycle counters gives a GEMV share $r=0.988$ on the
-2,639-ms build; after hoisting, the measured share is $r=0.985$. For the format change, Amdahl's law with $r=0.988$ and a 2.13$\times$ kernel gain predicts $1/((1-r)+r/2.13)=1.97\times$ end-to-end (observed 2.13$\times$); for the hoisting pass, $r=0.985$ and a 1.23$\times$ kernel gain predict 1.22$\times$ (observed 1.23$\times$), so kernel gains pass through almost unchanged. Counting one full read
+replacing per-weight offsets by block-sum corrections lowers it to 2,152~ms/token (0.465~tok/s),
+and the 32-bit batch-unpack / four-way / \texttt{-O3} pass reaches
+\textbf{1,612~ms/token (0.620~tok/s)}, i.e. 3.49$\times$ cumulative, with CE changed only in the
+last float rounding (window-0 CE 6.66067 vs.\ 6.66209). Instrumenting the packed GEMV path with
+cycle counters gives GEMV shares $r=0.988$, 0.985 and 0.977 on the three builds. Amdahl's law
+with the measured $r$ and kernel gains of 2.13$\times$, 1.23$\times$ and 1.34$\times$ predicts
+1.97$\times$, 1.22$\times$ and 1.33$\times$ end-to-end, matching the observed 2.13$\times$,
+1.23$\times$ and 1.34$\times$: kernel gains pass through almost unchanged. Counting one full read
 of packed weights (28.63~MB) plus one complete KV pass (2.36~MB) gives 30.99~MB/token, i.e.
 13.3--14.4~MB/s at the two operating points, while the weight-only rate during GEMV is
 10.98--13.3~MB/s---far below the 95.9~MB/s sequential-read microbenchmark. The scalar
@@ -183,15 +188,16 @@ Config & ms/tok & Speedup & $r$ & MB/s \\
 \midrule
 Scalar float, expanded & 5,622 & 1$\times$ & -- & -- \\
 int16 + packed & 2,639 & 2.13$\times$ & 0.988 & 10.98 \\
-+ hoisted quant. & \textbf{2,152} & \textbf{2.61$\times$} & 0.985 & 13.5 \\
++ hoisted quant. & 2,152 & 2.61$\times$ & 0.985 & 13.5 \\
++ batch unroll, \texttt{-O3} & \textbf{1,612} & \textbf{3.49$\times$} & 0.977 & 18.2 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \textbf{FP16 K/V cache.} Replacing the FP32 K/V cache with FP16 storage doubles the context to
-192 tokens at the same 2,359,296~B. Window-0 CE changes from 6.662094 to 6.660667
-($\Delta=0.0014$, 0.02\%) and decode time from 2,152 to 2,154~ms/token (within run-to-run
-noise), so the larger context is adopted at no measurable cost. The doubled context also pays
+192 tokens at the same 2,359,296~B. Window-0 CE changes from 6.662094 to 6.66067
+($\Delta=0.0014$, 0.02\%) and decode time is unchanged within run-to-run noise (measured on the
+pre-optimization kernel), so the larger context is adopted at no measurable cost. The doubled context also pays
 off in modeling: on the same token prefix, one 192-token window scores CE 5.970 versus 7.014
 for resetting every 96 tokens (190/191 targets), i.e. about a 15\% reduction in CE
 (PPL 392 vs.\ 1,107).
@@ -258,10 +264,10 @@ PIE & -- & kernel accel.; no capacity & 0.61--4.31 \\
 \end{table}
 
 \textbf{End-to-end and startup.} Weight loading from a TF card takes about 20.6~s, dominated by
-the card read; the packed image needs no post-load unpacking. Over 40 measured decode steps,
-per-token latency is 2,166.6~ms on average (median 2,164.4~ms, p95 2,189.0~ms, std.\ 13.1~ms),
-i.e. a narrow distribution without long tails; latency grows by about 2\% from position 0 to 31
-as attention reads a longer K/V cache. Prompt prefill is processed token-by-token with the same
+the card read; the packed image needs no post-load unpacking. Over 64 measured decode steps,
+per-token latency is 1,620.5~ms on average (median 1,616.0~ms, p95 1,645.5~ms, std.\ 12.4~ms),
+i.e. a narrow distribution without long tails; latency grows by about 2.7\% from position 0 to
+31 as attention reads a longer K/V cache. Prompt prefill is processed token-by-token with the same
 kernel (no batched prefill), so a short event-driven query plus a 32-token reply takes on the
 order of one to two minutes; this is consistent with the intended single-turn,
 non-conversational usage and is reported as a limitation rather than a capability. The mixed
@@ -270,11 +276,11 @@ pet-host protocol stack, and local generation), confirming that the frontier poi
 q3e4 are deployable rather than merely measurable.
 
 \section{Discussion and Limitations}
-The measured split changes the design story: the deployment is GEMV-bound ($r=0.988$ before hoisting; 0.985 after), and the
-scalar unpack/dot instruction stream is the throughput limiter, not the PSRAM bandwidth. The
-practical consequence is that the 2.13$\times$ kernel gain survives at the system level, and
-further gains should come from wider unpacking or ISA-level vectorization rather than from
-reducing bytes read. The 192-token context is obtained at no extra memory by storing the K/V cache in FP16
+The measured split changes the design story: the deployment is GEMV-bound ($r=0.977$ in the
+final build), and the unpack/dot instruction stream is the throughput limiter, not the PSRAM
+bandwidth. The practical consequence is that kernel work survives at the system level
+(3.49$\times$ cumulative); wider unpacking has already been applied, so further gains would
+require ISA-level vectorization rather than reducing bytes read. The 192-token context is obtained at no extra memory by storing the K/V cache in FP16
 (2.25~MiB for 192 tokens); measured windowed CE changes by 0.0014 and decode time is
 statistically unchanged, so the FP16 cache is adopted for deployment while FP32 K/V at 96
 tokens remains a conservative fallback. The model itself is deliberately small and trained on a single local GPU; its absolute
