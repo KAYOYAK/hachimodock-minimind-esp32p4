@@ -16,7 +16,7 @@
 
 - ✅ 作者：Shizhou Xu（Guangxi Medical University, Nanning, China）
 - ✅ 邮箱：X16717701114@outlook.com
-- ❌ **ORCID iD**：仍缺（IEEE 要求所有作者都有；去 https://orcid.org/register 免费注册后填入投稿系统）
+- ✅ **ORCID iD**：**0009-0001-1366-8144**（已通过 pub.orcid.org API 验证，HTTP 200；投稿系统里关联）
 - ✅ 通讯作者：单作者，本人
 - ✅ 利益冲突：已在 Acknowledgment 写“no conflict of interest”
 - ✅ 基金：已写“no external funding”
@@ -49,8 +49,8 @@
 
 ## F. 投稿系统（剩下的是你的操作）
 
-- ❌ **ORCID 注册**（2 分钟，免费）→ 拿到 16 位 iD
-- ❌ 注册/登录 IEEE Author Portal，关联 ORCID，上传稿件
+- ✅ ORCID 注册完成：0009-0001-1366-8144
+- ❌ 注册/登录 IEEE Author Portal，关联 ORCID，上传稿件（信息已在 `paper/submission/AUTHOR-INFO.md`）
 - ✅ 发表方式：**传统（免费）**（OA 需 $2800，不选）
 - ⏳ 视频 Graphical Abstract：**初次投稿不要求**，minor revision 阶段必须交（等屏幕到货后录）
 - ⏳ 超页费：只有排版后超 4 页才收（$125/页）；当前源文件 4 页整，投稿后若 IEEE 排版超页再处理（硬上限 8 页）
