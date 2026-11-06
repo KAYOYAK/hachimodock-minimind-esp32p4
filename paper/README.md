@@ -36,7 +36,7 @@ The result is a 4-page IEEEtran letter (within the ESL page limit).
 2. ✅ AI disclosure confirmed: DeepSeek Harness AI coding agent (DeepSeek model), not an author.
 3. ✅ Compiled and checked: exactly 4 pages, 1 figure, 4 tables, 14 references, no overfull boxes.
 4. ✅ Keywords trimmed to the required five; repository URL added to the reproducibility paragraph.
-5. ✅ ORCID iD registered: 0009-0001-1366-8144. Remaining external step: submit through the
-   IEEE Author Portal (traditional, free publication); portal copy-paste fields are in
-   `paper/submission/AUTHOR-INFO.md`.
+5. ✅ ORCID iD registered: 0009-0001-1366-8144.
+6. ✅ **Submitted to IEEE ESL on 6 November 2026** (IEEE Author Portal, traditional publication);
+   Submission ID `b2f17b7c-ec73-41c9-9a88-3acff50452b1`; record in `paper/submission/SUBMISSION-RECORD.md`.
 6. ⏳ After acceptance: video graphical abstract is required at the minor-revision stage.
