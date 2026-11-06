@@ -14,7 +14,7 @@
 
 ## B. 作者与声明
 
-- ✅ 作者：ShiZhou Xu（Guangxi Medical University, Nanning, China）
+- ✅ 作者：Shizhou Xu（Guangxi Medical University, Nanning, China）
 - ✅ 邮箱：X16717701114@outlook.com
 - ❌ **ORCID iD**：仍缺（IEEE 要求所有作者都有；去 https://orcid.org/register 免费注册后填入投稿系统）
 - ✅ 通讯作者：单作者，本人
