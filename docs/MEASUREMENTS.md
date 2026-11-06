@@ -130,3 +130,16 @@ python paper\host_rules.py
 | q2 | **0（0%）** | **0（0%）** | 完全一致 |
 
 结论：设备与 host 同 recipe 的规则评分一致（q2 完全一致，q3e4 差 2 条），主表用 host 分数（四配置可比），设备分数作为交叉验证。
+
+## 8. 逐 token 延迟分布（n=40，pos 0–39）
+
+| 指标 | 值 |
+|---|---|
+| mean | **2,166.6 ms** |
+| median / p50 | 2,164.4 / **2,164.9 ms** |
+| p95 | **2,189.0 ms** |
+| min / max | 2,147.8 / 2,190.7 ms |
+| stdev | 13.1 ms（~0.6%） |
+
+- 位置效应：pos 0→31 延迟 +2.0%（attention 随 KV 增长）；外推 192 上下文约 +12%。
+- mixed 完整固件验证：30,401,920 B 模型在独立宠物固件中 `model read done / pet host started / USB host installed / auto demo / [ai]` 全部出现 → frontier 点在完整固件中可部署。
