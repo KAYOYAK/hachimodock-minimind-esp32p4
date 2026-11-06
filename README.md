@@ -299,5 +299,5 @@ TF 卡根目录：
 ## 📄 论文与评测（artifact）
 
 - 论文当前在 **IEEE Embedded Systems Letters** 审稿中；审稿期间不在公开仓库放论文正文/草稿；
-- 评测脚本与数据保留在 [paper/](paper/)（CE 脚本、prompt 集、测量 CSV/日志）；
-- 部署 artifact（模型、固件、分词器）见根目录与 [0.2.1](https://github.com/KAYOYAK/hachimodock-minimind-esp32p4/releases/tag/v0.2.1)。
+- 评测脚本与数据保留在 [`paper/`](paper/)（CE 脚本、prompt 集、测量 CSV/日志）；
+- 部署 artifact（模型、固件、分词器）见根目录与 [v0.2.1](https://github.com/KAYOYAK/hachimodock-minimind-esp32p4/releases/tag/v0.2.1)。
