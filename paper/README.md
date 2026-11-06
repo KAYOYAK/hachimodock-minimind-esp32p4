@@ -31,7 +31,7 @@ The result is a 4-page IEEEtran letter (within the ESL page limit).
 
 ## Submission status (2026-11-06)
 
-1. ✅ Author block filled: ShiZhou Xu, Guangxi Medical University, Nanning, China,
+1. ✅ Author block filled: Shizhou Xu, Guangxi Medical University, Nanning, China,
    X16717701114@outlook.com; manuscript received Nov. 6, 2026; `\markboth` updated.
 2. ✅ AI disclosure confirmed: DeepSeek Harness AI coding agent (DeepSeek model), not an author.
 3. ✅ Compiled and checked: exactly 4 pages, 1 figure, 4 tables, 14 references, no overfull boxes.
