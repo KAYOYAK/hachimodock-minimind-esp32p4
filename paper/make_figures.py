@@ -26,7 +26,7 @@ POINTS = [
 
 # per-token latency from the measured log
 lat = []
-for path in [os.path.join(BASE, r"logs\measure_latency.log")]:
+for path in [os.path.join(BASE, r"logs\opt2_measure_raw.log")]:
     try:
         txt = open(path, encoding="utf-8", errors="replace").read()
         lat = [int(v) / 1000.0 for v in re.findall(r"STEPUS \d+ (\d+)", txt)][-32:]
@@ -96,7 +96,7 @@ ax2.set_xlabel("decode position")
 ax2.set_ylabel("per-token latency (ms)")
 ax2.set_title("(b) per-token latency (n=%d)" % len(lat), fontsize=7.5)
 ax2.set_xlim(-0.5, max(pos) + 0.5)
-ax2.set_ylim(2135, 2200)
+ax2.set_ylim(1590, 1660)
 ax2.grid(True, lw=0.3, color="0.9")
 
 fig.tight_layout(pad=0.3)
