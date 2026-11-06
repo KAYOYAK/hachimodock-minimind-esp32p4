@@ -20,8 +20,8 @@
 **回应**：部署为 **192 token、FP16 K/V、2,359,296 B**（与 96 token FP32 同字节数），Table I 给出公式与实测剩余 2,352,828 B；FP16 替换实测 ΔCE=0.0015、速度不变；192 窗口 CE 5.970 vs 96 重置 7.014（约 −15%）。
 **证据**：`board_config.h`（BOARD_CTX_TOKENS=192）、`logs/measure_kvfp16.log`、`logs/measure_kv192.log`。
 
-## R5. “0.465 tok/s 的瓶颈归因有证据吗？”
-**回应**：实测 r=0.985（含 lm_head，GEMV 2,120 ms / 总 2,152 ms）；格式改动 r=0.988；Amdahl 预测（r=0.985、kernel 1.23×）1.22× 与实测 1.23× 一致。GEMV 有效权重流量 13.5 MB/s，PSRAM 顺序读微基准 95.9 MB/s → 瓶颈是 GEMV 解包+整数点积指令流，不是带宽。
+## R5. “0.620 tok/s 的瓶颈归因有证据吗？”
+**回应**：实测 r=0.977（最终构建，含 lm_head，GEMV 1,575 ms / 总 1,612 ms）；三个构建 r=0.988/0.985/0.977，Amdahl 预测（r 与 kernel 2.13×/1.23×/1.34×）分别 1.97×/1.22×/1.33×，与实测 2.13×/1.23×/1.34× 一致。GEMV 有效权重流量 18.2 MB/s（含 KV 19.2），PSRAM 顺序读微基准 95.9 MB/s → 瓶颈仍是解包+整数点积指令流，不是带宽。
 **证据**：Table II、`logs/measure_q3e4_r.log`、`logs/measure_bw4.log`。
 
 ## R6. “为什么选 q3e4 而不是 mixed / 更小配置？”
