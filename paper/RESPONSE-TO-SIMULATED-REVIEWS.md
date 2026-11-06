@@ -78,5 +78,5 @@
 4. ✅ Public English (Apache-2.0) CE and public MiniMind-3 checkpoint anchor (ZH/EN).
 5. ✅ Same-access-pattern read-only control: 600 ms/token (GEMV 519 ms, 55 MB/s) vs 1,575 ms real GEMV.
 6. ✅ UART boot log itemizes the full PSRAM budget (209,860 B runtime + 538,656 B tokenizer; 1,814,172 B free at ready).
-7. ❌ FP16-vs-FP32 K/V latency on the final build (not re-run; CE effect measured).
+7. ✅ FP16-vs-FP32 K/V latency at 96-token context on the final kernel: 1,610.0 vs 1,607.6 ms/token (4 runs each, <0.2%).
 8. ❌ Energy-per-token (no USB power meter available).
