@@ -2,7 +2,7 @@
 
 > 目标：IEEE Embedded Systems Letters，4 页（含图表与参考文献）。
 > 标题（KV=96，已定）：**Fully-Resident Weight Storage for Mixed-Precision SLM Inference on a 32-MB PSRAM MCU**
-> 一句话主张：在 32 MB PSRAM 硬容量下，q3e4 混合位宽让 63.91M 稠密 SLM 的 27.3 MiB 权重全驻留成为可能；0.38 tok/s 的延迟由 GEMV 及其相邻内存路径主导，而非算力。
+> 一句话主张：在 32 MB PSRAM 硬容量下，q3e4 混合位宽让 63.91M 稠密 SLM 的 27.3 MiB 权重全驻留成为可能；0.465 tok/s（2,152 ms/token）的延迟由 GEMV 指令流主导，而非算力。
 
 ---
 
@@ -11,8 +11,8 @@
 We show that mixed-precision quantization is the enabling factor for fully-resident weight
 storage of a dense SLM on a 32-MB PSRAM MCU. A 63.91M-parameter model, quantized to **q3e4
 (embedding/output q4, attention/FFN q3)** and **27.3 MiB** total, runs entirely in on-package
-PSRAM with a **96-token context**; no host participates at inference time. Measured decode
-throughput is **0.38 tok/s (2.64 s/token) on the scalar integer dot-product baseline**, and
+PSRAM with a **192-token context** (FP16 K/V); no host participates at inference time. Measured decode
+throughput is **0.465 tok/s (2.152 s/token) after int16/packed GEMV plus quantization hoisting** (2.61x cumulative over the 5,622 ms scalar baseline), and
 int16 activation with zero-copy packed weights yields a **2.1× GEMV kernel-level speedup over
 that baseline**. Our memory budget is auditable line-by-line (weights, KV cache, arena,
 scratch, residual), and a three-point feasibility triangle — q2 crosses the accuracy cliff,
@@ -25,7 +25,7 @@ point plus its bandwidth–latency characterization.
 
 1. **死锁**：32 MB PSRAM 是硬容量；稠密 63.91M 模型 FP16 需 ~128 MiB，必须压缩；无主机启动依赖（不同于从 USB 灌权重）。
 2. **两条绕行路径**：p-for-llm（180.9M MoE，W1.58A8，~44 MiB 分布在 Flash+PSRAM，USB 启动灌 PSRAM 权重，主机不参与推理但启动依赖主机；~9 tok/s 靠 Top-1 29 experts 稀疏路由）；PIE 系列（0.61→4.31 tok/s，内核级向量加速，不处理容量约束）。没有工作回答“稠密全驻留上界 + 到界后的代价”。2026 系统综述：MCU 全驻留 LLM 证据集中在 256–412 KB 任务 SLM 与一个 5.81 MB 全三值化 ViT；27.3 MiB 稠密权重落在空白区。
-3. **答案**：q3e4 使 27.3 MiB 全驻留成立，代价是 96-token 上下文与 0.38 tok/s；贡献边界：不主张量化/系统架构创新，主结果是容量边界与带宽—延迟刻画。USB 协议桥只在实验设置一句带过。
+3. **答案**：q3e4 使 27.3 MiB 全驻留成立（192-token FP16-KV 上下文、0.465 tok/s）；贡献边界：不主张量化/系统架构创新，主结果是容量边界与带宽—延迟刻画。USB 协议桥只在实验设置一句带过。
 
 ## II. Method（≈450–500 词）
 
@@ -74,10 +74,10 @@ point plus its bandwidth–latency characterization.
 | Config | ms/token | Speedup | Bytes/token | r (GEMV share) | Removed bottleneck |
 |---|---|---|---|---|---|
 | scalar float / expanded | 5,622 | 1× | ~28.7 MB | — | 逐元素反量化 + 标量 float 点积 |
-| int16 activation + zero-copy packed | **2,640** | **2.13× kernel-level** | 28.63 MB | **0.988** | 反量化内存流量 + 权重重排 |
+| int16 activation + zero-copy packed | **2,639** | **2.13× kernel-level** | 28.63 MB | **0.988** | 反量化内存流量 + 权重重排 |\n| + 激活量化外提 / offset 消除 | **2,152** | **2.61× 累计** | 28.63 MB | **0.985** | 每行重复量化 + 逐权重 offset |
 | (future) PIE / vectorized unpack | — | 待评估 | — | — | 指令流（unpack + int dot） |
 
-**Amdahl（实测 r=0.988）**：端到端加速 = 1/((1−0.988)+0.988/2.1) = **1.97×**，与实测 5,622→2,640 ms（2.13×）一致。结论：GEMV 占 decode 的 98.8%，内核优化几乎 1:1 传递到端到端。
+**Amdahl**：格式改动 r=0.988、kernel 2.13× → 预测 1.97×（实测 2.13×）；外提 r=0.985、kernel 1.23× → 预测 1.22×（实测 1.23×）。GEMV 占 decode 98.5%，内核优化几乎 1:1 传递到端到端。
 
 > ⚠️ **归因更正（2026-11-05 实测）**：GEMV 有效权重流量 = 28.63 MB / 2.608 s ≈ **10.98 MB/s**，远低于 PSRAM 标称/可持续带宽；这指向 **GEMV 的指令流（解包 + 标量整数点积）** 是主瓶颈，而不是“PSRAM 带宽不够”。token 速率 0.38 tok/s 的说法必须建立在“GEMV 内核指令流”归因上；`/bw` 微基准（PSRAM 顺序读带宽）将给出带宽上限证据。论文措辞改为：
 > “decode is dominated by the GEMV kernel (r=0.988), whose scalar unpack/dot instruction stream — not PSRAM bandwidth — limits throughput; a 2.1× kernel-level optimization therefore appears almost fully end-to-end.”
@@ -88,7 +88,7 @@ point plus its bandwidth–latency characterization.
 |---|---|---|---|---|---|
 | p-for-llm | 180.9M MoE (W1.58A8) | partial: PSRAM weights + Flash XIP PLE | yes (USB weight transfer) | ~9 tok/s (reported) | MoE sparsity buys throughput |
 | PIE | — | — | — | 0.61→4.31 tok/s (reported) | kernel-level vector acceleration |
-| **This work** | 63.91M dense | **full: 27.3 MiB in PSRAM** | **no** | **0.38 tok/s** | capacity-bound residency point + cost model |
+| **This work** | 63.91M dense | **full: 27.3 MiB in PSRAM** | **no** | **0.465 tok/s** | capacity-bound residency point + cost model |
 
 > Footnote: throughput values for p-for-llm and PIE are as reported by their authors, not reproduced here; different hardware/model scales — comparison positions constraint differences, not direct throughput.
 
