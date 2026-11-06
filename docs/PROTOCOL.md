@@ -100,3 +100,22 @@ Agent 气泡用 `speech/text`（**不是** `ui/conversation`）：
 2. **DTR/RTS 电气含义**：DTR → P4 GPIO35（boot strap），RTS → EN。正常通信必须保持释放；拉 RTS 会复位设备，拉 DTR 会让下次复位进下载模式。
 3. 打开顺序：打开串口 → 设置 CH343 线路/波特率 → 拉 RTS 脉冲复位一次 → 释放 → 发心跳 → 等 hello。
 4. 设备端**不做** USB 连接检测，它只看 UART 数据；host 侧心跳是唯一保活手段。
+
+## 输入事件与触发策略（2026-11-06 实测）
+
+设备上报的 `input/event` 实测映射：
+
+| event | action | 备注 |
+|---|---|---|
+| `button.sw1.short_press` | `page_enter` | SW1 短按，用作 P4 侧 AI 触发键 |
+| `button.sw2.short_press` | `component_center` | SW2 短按 |
+| `button.sw3.short_press` | `page_back` | SW3 短按 |
+| `button.encoder.short_press` | `page_enter` | 摇杆中键 |
+| `joystick.up` / `joystick.down` | `session_previous` / `session_next` | 摇杆上下 |
+| `knob.rotate_ccw` / `knob.rotate_cw` | `session_previous` / `session_next` | 旋钮 |
+
+- P4 固件只对 `button.sw1.short_press` 触发生成（`pet_input_cb` 里精确匹配 event 名），其余事件仅记录；
+- 生成期间忽略重复触发（`s_gen_busy` 保护）；
+- **`speech/text` 发送注意**：模型是字节级 BPE，生成的 token 字节序列可能不是合法 UTF-8，
+  发送前必须做 UTF-8 清洗（非法字节替换为 `?`），否则设备会回 `invalid_json` NACK；
+- 气泡状态：`thinking` → `writing` → `waiting_user`；`displayContent` 为增量文本。
