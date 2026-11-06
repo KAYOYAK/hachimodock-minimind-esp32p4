@@ -1,42 +1,14 @@
-# Paper sources (IEEE ESL letter)
+# paper/ - artifact only
 
-**Title:** Fully-Resident Weight Storage for Mixed-Precision SLM Inference on a 32-MB PSRAM MCU
+The manuscript is under review at IEEE Embedded Systems Letters. Manuscript source and PDF are
+intentionally not published in this public repository while it is under review.
 
-## Compile
+What is kept here:
 
-```powershell
-# install once (chocolatey) if tectonic is missing:
-#   choco install tectonic -y
-# first run needs the TeX bundle; archive.org is blocked on this machine, so use the mirror:
-tectonic --web-bundle https://relay.fullyjustified.net/default_bundle.tar ESL-LETTER-DRAFT.tex
-```
+- host_ce.py, host_rules.py, make_figures.py, parse_device_log.py, score_prompts.py
+- val_prompts.json, val_prompts_100.json, heldout_*.json/txt
+- measurements/ (CE tables, evaluation outputs, device logs)
+- ACKNOWLEDGMENT-AI.md
 
-The result is a 4-page IEEEtran letter (within the ESL page limit).
-
-## Files
-
-| File | Purpose |
-|---|---|
-| `ESL-LETTER-DRAFT.tex` | main manuscript (author/affiliation still `<...>` placeholders) |
-| `figures/fig_frontier_latency.png` | Fig. 1: (a) capacity--accuracy frontier, (b) per-token latency |
-| `make_figures.py` | regenerates Fig. 1 from the measured data |
-| `RESULTS.md` | all measured numbers, one place |
-| `ESL-LETTER-OUTLINE.md` | outline and design decisions |
-| `heldout_text.txt`, `heldout_ids.json`, `heldout_en_ids.json` | held-out CE corpora (ZH/EN) |
-| `eval_prompts.json`, `score_prompts.py` | 30-prompt deterministic rule scoring |
-| `host_ce.py`, `host_rules.py` | host simulation (same block-32 recipe as firmware) |
-| `parse_device_log.py` | device log → CE / rule summary |
-| `ce_host_zh.csv`, `ce_host_en.csv` | host windowed-CE results |
-| `ACKNOWLEDGMENT-AI.md`, `SUBMISSION-CHECKLIST.md`, `RESPONSE-TEMPLATE.md` | submission workflow documents |
-
-## Submission status (2026-11-06)
-
-1. ✅ Author block filled: Shizhou Xu, Guangxi Medical University, Nanning, China,
-   X16717701114@outlook.com; manuscript received Nov. 6, 2026; `\markboth` updated.
-2. ✅ AI disclosure confirmed: DeepSeek Harness AI coding agent (DeepSeek model), not an author.
-3. ✅ Compiled and checked: exactly 4 pages, 1 figure, 4 tables, 14 references, no overfull boxes.
-4. ✅ Keywords trimmed to the required five; repository URL added to the reproducibility paragraph.
-5. ✅ ORCID iD registered: 0009-0001-1366-8144.
-6. ✅ **Submitted to IEEE ESL on 6 November 2026** (IEEE Author Portal, traditional publication);
-   Submission ID `b2f17b7c-ec73-41c9-9a88-3acff50452b1`; record in `paper/submission/SUBMISSION-RECORD.md`.
-6. ⏳ After acceptance: video graphical abstract is required at the minor-revision stage.
+The deployable artifact (models, firmware, tokenizer) is in the repository root and the
+v0.2.1 release.
