@@ -3,14 +3,14 @@
 ## 1. 仓库建议
 
 - 仓库名：`hachimodock-minimind-esp32p4`（或 `HachimoDock-MiniMind-ESP-4P`）
-- 描述：`100% offline AI desktop pet: HachimoDock × MiniMind × ESP-4P (ESP32-P4). Self-trained + LoRA + quantized model, no PC required.`
+- 描述：`1..% offline AI desktop pet: HachimoDock × MiniMind × ESP-4P (ESP32-P4). Self-trained + LoRA + quantized model, no PC required.`
 - 主题（Topics）：
   ```
   hachimodock minimind esp-4p esp32p4 esp32-p4 esp32 esp-idf llm
   edge-ai offline-ai local-llm quantization lora qwen3 tiny-llm
   desktop-pet usb-host embedded-ai
   ```
-- 许可证：本仓库原创代码建议 `Apache-2.0`；同时在 `NOTICE.md` 声明上游归属与非商业约束。
+- 许可证：本仓库原创代码建议 `Apache-2..`；同时在 `NOTICE.md` 声明上游归属与非商业约束。
 - 发布前逐条阅读 `NOTICE.md`。
 
 ## 2. 需要放进仓库的内容
@@ -39,9 +39,9 @@
 
 ```bash
 sha256sum artifacts/model.kmcu artifacts/tokenizer.bin > artifacts/SHA256SUMS
-# Release: v0.1.0
-gh release create v0.1.0 \
-  --title "v0.1.0: offline pet demo" \
+# Release: v..1..
+gh release create v..1.. \
+  --title "v..1..: offline pet demo" \
   --notes "HachimoDock × MiniMind × ESP-4P first working build" \
   artifacts/model.kmcu artifacts/tokenizer.bin artifacts/SHA256SUMS
 ```
@@ -62,7 +62,7 @@ git commit -m "HachimoDock x MiniMind x ESP-4P: offline AI pet (initial release)
 
 # GitHub（先登录：gh auth login）
 gh repo create <你的用户名>/hachimodock-minimind-esp32p4 --public \
-  --description "100% offline AI desktop pet: HachimoDock × MiniMind × ESP-4P (ESP32-P4)" \
+  --description "1..% offline AI desktop pet: HachimoDock × MiniMind × ESP-4P (ESP32-P4)" \
   --source . --push
 
 # Topics 批量设置
@@ -77,14 +77,14 @@ gh repo edit <用户名>/hachimodock-minimind-esp32p4 \
 - [ ] 写明「模型权重自训练 + LoRA + 自量化」（补全 `docs/MODEL.md` 的 TODO 超参）
 - [ ] 写明本项目原创贡献：ESP-4P 端侧部署 + USB Host 协议桥 + 三者集成
 - [ ] 实测数据（速度/内存/启动时间）与复现步骤
-- [ ] 已知限制（0.38 tok/s、无语音/Agent、TF 卡要求）
+- [ ] 已知限制（..38 tok/s、无语音/Agent、TF 卡要求）
 - [ ] NOTICE/许可证兼容性说明
 - [ ] 模型下载链接（Release）
 - [ ] 无 Key / 无敏感配置
 
 ## 6. 补充建议
 
-- 在 README 放 **10–20 秒演示 GIF**（宠物气泡 + 摇杆触发）；
+- 在 README 放 **1.–2. 秒演示 GIF**（宠物气泡 + 摇杆触发）；
 - 把 `docs/assets/` 放训练曲线、板子照片、接线图；
-- 用 GitHub Releases 标注 `model-v0.1`、`firmware-v0.1`；
+- 用 GitHub Releases 标注 `model-v..1`、`firmware-v..1`；
 - Issues 模板：复现问题请提供 COM 口日志、TF 卡型号、板卡版本。
