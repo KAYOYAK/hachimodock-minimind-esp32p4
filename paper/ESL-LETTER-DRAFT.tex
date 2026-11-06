@@ -122,18 +122,19 @@ initialization, measured at runtime.
 \centering
 \caption{Deployed memory budget on a 32-MB PSRAM ESP32-P4 (measured).}
 \label{tab:budget}
-\small
+\footnotesize
+\setlength{\tabcolsep}{2.5pt}
 \begin{tabular}{@{}lr@{}}
 \toprule
 Item & Bytes \\
 \midrule
-q3e4 weights (packed image) & 28,632,448 (27.3 MiB) \\
-KV cache, 192 tokens, FP16 & 2,359,296 \\
-Norm arena (internal RAM) & 58,368 \\
-Scratch + int16 activations (internal RAM) & 52,608 \\
-PSRAM free after KV init (runtime) & 2,352,828 \\
+q3e4 weights & 28,632,448 (27.3 MiB) \\
+KV (192 tok, FP16) & 2,359,296 \\
+Norm arena (int.\ RAM) & 58,368 \\
+Scratch+act (int.\ RAM) & 52,608 \\
+PSRAM free after KV & 2,352,828 \\
 \midrule
-PSRAM total & $\leq$ 33,554,432 (32 MiB) \\
+PSRAM total & $\leq$ 33,554,432 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -157,14 +158,15 @@ instruction-bound one motivates kernel vectorization or wider unpacking.
 \centering
 \caption{Decode-time ablation (measured on device).}
 \label{tab:gemv}
-\small
+\footnotesize
+\setlength{\tabcolsep}{2.5pt}
 \begin{tabular}{@{}lrrrr@{}}
 \toprule
-Configuration & ms/token & Speedup & $r$ & MB/s \\
+Config & ms/tok & Speedup & $r$ & MB/s \\
 \midrule
-Scalar float, expanded weights & 5,622 & 1$\times$ & -- & -- \\
-int16 activation + zero-copy packed & 2,639 & 2.13$\times$ & 0.988 & 10.98 / 11.75 \\
-+ hoisted activation quant.\ / block sums & \textbf{2,152} & \textbf{2.61$\times$ (cum.)} & 0.985 & 13.5 / 14.4 \\
+Scalar float, expanded & 5,622 & 1$\times$ & -- & -- \\
+int16 + packed & 2,639 & 2.13$\times$ & 0.988 & 10.98 \\
++ hoisted quant. & \textbf{2,152} & \textbf{2.61$\times$} & 0.985 & 13.5 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -196,16 +198,17 @@ runtime headroom under heap fragmentation and USB/protocol activity.
 \centering
 \caption{Capacity--accuracy frontier (32-MB PSRAM; host simulation, windowed CE, same recipe).}
 \label{tab:frontier}
-\small
+\footnotesize
+\setlength{\tabcolsep}{2.5pt}
 \begin{tabular}{@{}lrrrrr@{}}
 \toprule
-Config & Size (B) & CE & CE/q4 & Rule & ms/token \\
+Config & Size (B) & CE & CE/q4 & Rule & ms \\
 \midrule
-q2 & 20,030,848 & 10.074 & 1.450 & 0\% & \textbf{1,352} \\
+q2 & 20,030,848 & 10.074 & 1.450 & 0\% & 1,352 \\
 q3 & 28,018,048 & 7.090 & 1.020 & -- & -- \\
-\textbf{q3e4 (deployed)} & \textbf{28,632,448} & \textbf{7.087} & \textbf{1.020} & \textbf{80\%} & \textbf{2,152} \\
-mixed & 30,401,920 & 7.037 & 1.013 & 73.3\% & \textbf{2,017} \\
-q4 (reference) & 36,005,248 & 6.949 & 1.000 & 73.3\% & n/a \\
+\textbf{q3e4} & \textbf{28,632,448} & \textbf{7.087} & \textbf{1.020} & \textbf{80\%} & \textbf{2,152} \\
+mixed & 30,401,920 & 7.037 & 1.013 & 73.3\% & 2,017 \\
+q4 & 36,005,248 & 6.949 & 1.000 & 73.3\% & n/a \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -224,14 +227,15 @@ constraint differences, and the reported throughputs are cited as reported by th
 \centering
 \caption{Constraint comparison (throughput values as reported, not reproduced).}
 \label{tab:compare}
-\small
-\begin{tabular}{@{}p{1.45cm}p{1.6cm}p{1.9cm}r@{}}
+\footnotesize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}lrrr@{}}
 \toprule
-Work & Model & Residency / boot host & tok/s \\
+Work & Model & Residency / boot & tok/s \\
 \midrule
-p-for-llm & 180.9M MoE & partial (PSRAM + flash XIP); USB weight transfer at boot & $\sim$9 \\
-PIE & -- & kernel-level acceleration; no capacity study & 0.61--4.31 \\
-\textbf{This work} & 63.91M dense & \textbf{full, 27.3 MiB}; no host at any time & \textbf{0.465} \\
+p-for-llm & 180.9M MoE & partial; USB boot & $\sim$9 \\
+PIE & -- & kernel accel.; no capacity study & 0.61--4.31 \\
+\textbf{This work} & 63.91M dense & \textbf{full 27.3 MiB; no host} & \textbf{0.465} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -255,7 +259,7 @@ quality is not the claim---accuracy measurements only delimit the feasible set. 
 training logs, evaluation scripts and the self-trained q3e4 image are public for reproduction.
 
 \section{Conclusion}
-A 63.91M dense SLM can reside fully in 32~MB of PSRAM at 27.3~MiB with a 96-token context and
+A 63.91M dense SLM can reside fully in 32~MB of PSRAM at 27.3~MiB with a 192-token context and
 no host participation, and the resulting latency is dominated by the packed GEMV kernel rather
 than by memory bandwidth, so kernel-level work transfers almost directly to end-to-end speed.
 The capacity--accuracy frontier, with q2 beyond the accuracy cliff and q4 beyond the budget, is
@@ -273,12 +277,12 @@ originality and integrity of this work.
 \bibitem{pforllm} <p-for-llm authors>, ``<title>,'' <venue>, <year>.
 \bibitem{pie} <PIE authors>, ``<title>,'' <venue>, <year>.
 \bibitem{survey} <2026 survey authors>, ``A survey of language models on microcontrollers,'' <venue>, 2026.
-\bibitem{qwen3} Qwen Team, ``Qwen3 technical report,'' 2025.
-\bibitem{gptq} G.~Frantar \emph{et al.}, ``GPTQ: Accurate post-training quantization for generative pre-trained transformers,'' \emph{ICLR}, 2023.
-\bibitem{awq} J.~Lin \emph{et al.}, ``AWQ: Activation-aware weight quantization for on-device LLM compression and acceleration,'' \emph{MLSys}, 2024.
-\bibitem{llmint8} T.~Dettmers \emph{et al.}, ``LLM.int8(): 8-bit matrix multiplication for transformers at scale,'' \emph{NeurIPS}, 2022.
+\bibitem{qwen3} Qwen Team, ``Qwen3 technical report,'' arXiv:2505.09388, 2025.
+\bibitem{gptq} G.~Frantar, S.~Ashkboos, T.~Hoefler, and D.~Alistarh, ``GPTQ: Accurate post-training quantization for generative pre-trained transformers,'' in \emph{Proc. ICLR}, 2023.
+\bibitem{awq} J.~Lin \emph{et al.}, ``AWQ: Activation-aware weight quantization for on-device LLM compression and acceleration,'' in \emph{Proc. MLSys}, 2024.
+\bibitem{llmint8} T.~Dettmers, M.~Lewis, Y.~Belkada, and L.~Zettlemoyer, ``LLM.int8(): 8-bit matrix multiplication for transformers at scale,'' in \emph{Proc. NeurIPS}, 2022.
 \bibitem{psram} Espressif Systems, ``ESP32-P4 technical reference manual,'' 2025.
-\bibitem{minimind} <MiniMind authors>, ``MiniMind: train a small language model from scratch,'' GitHub, 2025.
+\bibitem{minimind} Jingyaogong, ``MiniMind: train a small language model from scratch,'' GitHub repository, 2025. [Online]. Available: https://github.com/jingyaogong/minimind
 \bibitem{memorywall} <memory-wall / MCU storage hierarchy reference>, <venue>, <year>.
 \bibitem{edgebench} <edge transformer inference benchmark>, <venue>, <year>.
 \bibitem{int16} <int16 activation inference reference>, <venue>, <year>.
