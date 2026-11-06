@@ -29,11 +29,13 @@ The result is a 4-page IEEEtran letter (within the ESL page limit).
 | `ce_host_zh.csv`, `ce_host_en.csv` | host windowed-CE results |
 | `ACKNOWLEDGMENT-AI.md`, `SUBMISSION-CHECKLIST.md`, `RESPONSE-TEMPLATE.md` | submission workflow documents |
 
-## Before submission
+## Submission status (2026-11-06)
 
-1. Fill `<Author Name>`, `<Affiliation...>`, contact and `\markboth` short author name.
-2. Confirm the AI-tool wording in the Acknowledgment (currently: DeepSeek Harness AI coding
-   agent / DeepSeek model, not an author).
-3. Recompile and check it stays within 4 pages.
-4. Verify the reference entries that are not yet publicly indexed (p-for-llm, PIE series,
-   ESP32 review) match what reviewers can find.
+1. ✅ Author block filled: ShiZhou Xu, Guangxi Medical University, Nanning, China,
+   X16717701114@outlook.com; manuscript received Nov. 6, 2026; `\markboth` updated.
+2. ✅ AI disclosure confirmed: DeepSeek Harness AI coding agent (DeepSeek model), not an author.
+3. ✅ Compiled and checked: exactly 4 pages, 1 figure, 4 tables, 14 references, no overfull boxes.
+4. ✅ Keywords trimmed to the required five; repository URL added to the reproducibility paragraph.
+5. ❌ Remaining external step: register an ORCID iD (IEEE requires it for all authors) and submit
+   through the IEEE Author Portal (traditional, free publication).
+6. ⏳ After acceptance: video graphical abstract is required at the minor-revision stage.
