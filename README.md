@@ -301,4 +301,6 @@ TF 卡根目录：
 - 标题：*Fully-Resident Weight Storage for Mixed-Precision SLM Inference on a 32-MB PSRAM MCU*
 - 目录：[`paper/`](paper/) —— LaTeX 源、编译说明、Fig. 1、全部测量数据与复现脚本、AI 使用披露、投稿清单；
 - 已本地编译验证：**4 页**（IEEEtran，ESL 页数上限内），PDF：[`paper/draft.pdf`](paper/draft.pdf)；
+- **v2 修订稿**（针对 8 份模拟审稿意见修正，未重新投稿）：[`paper/ESL-LETTER-DRAFT-v2.tex`](paper/ESL-LETTER-DRAFT-v2.tex) / [`paper/draft-v2.pdf`](paper/draft-v2.pdf)；修复清单见 [`paper/REVISION-CHECKLIST-2026-11-06.md`](paper/REVISION-CHECKLIST-2026-11-06.md)；
+- 完整 7 套量化镜像：[`v0.2.1 Release`](https://github.com/KAYOYAK/hachimodock-minimind-esp32p4/releases/tag/v0.2.1)；
 - 还差：作者信息、AI 工具清单确认、参考文献核对（详见 `paper/README.md`）。
