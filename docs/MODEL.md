@@ -103,7 +103,7 @@ python tools/convert_minimind.py --profile q3e4 \
 | q2 | 20,030,848 B | 可装下但质量明显下降，不推荐 |
 | q3 | 28,018,048 B | 纯 q3，质量略低于 q3e4（embedding q3 拖累） |
 | **q3e4（部署档）** | **28,632,448 B** | embedding q4 + attn/FFN q3，32MB PSRAM 全驻，最佳平衡 |
-| q4 | 36,005,248 B | 质量最好但 36MB > 32MB PSRAM，只能 TF 流式（0.465 tok/s 会再慢数倍） |
+| q4 | 36,005,248 B | 质量最好但 36MB > 32MB PSRAM，只能 TF 流式（最终构建 0.620 tok/s；流式还会更慢） |
 
 > q4 与非量化 bf16 的 1:1 逐 token 对拍未做（无 36MB 常驻内存条件），但 q3e4 的 top-8/贪心序列已与 fp32 参考完全一致，说明量化误差没有改变解码轨迹。
 
