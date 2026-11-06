@@ -16,8 +16,8 @@
 \* r 为 lm_head 未计入的 GEMV 口径；q3e4 的精确 r 由 r-instrumented 固件测量（见日志 `measure_q3e4_r.log`）。
 
 - **PSRAM 顺序读带宽**：`/bw` 1 MB 顺序读 → **95.9 MB/s**（下界）。\n\n- 精确 r（含 lm_head）：**0.985**（GEMV 2,120 ms/token）。
-- 优化后 GEMV 有效权重流量：28.63 MB / 1.994 s ≈ **14.4 MB/s**（约为带宽下界的 16%）。
-- 每 token 总流量（权重 + 一次完整 KV pass 2.36 MB）≈ 30.99 MB。
+- 最终 GEMV 有效权重流量：28.63 MB / 1.575 s ≈ **18.2 MB/s**（含 KV 总流量 19.2 MB/s，约为 95.9 MB/s 带宽下界的 20%）。
+- 每 token 总流量（权重 + 一次完整 KV pass 2.36 MB）≈ 30.99 MB；最终 19.2 MB/s。
 
 ## 2. 启动时间分解（T_APP）
 
@@ -133,13 +133,13 @@ python paper\host_rules.py
 
 ## 8. 逐 token 延迟分布（n=40，pos 0–39）
 
-| 指标 | 值 |
+| 指标 | 值（最终 opt2 构建，n=64） |
 |---|---|
-| mean | **2,166.6 ms** |
-| median / p50 | 2,164.4 / **2,164.9 ms** |
-| p95 | **2,189.0 ms** |
-| min / max | 2,147.8 / 2,190.7 ms |
-| stdev | 13.1 ms（~0.6%） |
+| mean | **1,620.5 ms** |
+| median / p50 | 1,616.0 / **1,616.0 ms** |
+| p95 | **1,645.5 ms** |
+| min / max | 1,606.0 / 1,649.4 ms |
+| stdev | 12.4 ms（~0.8%） |
 
 - 位置效应：pos 0→31 延迟 +2.0%（attention 随 KV 增长）；外推 192 上下文约 +12%。
 - mixed 完整固件验证：30,401,920 B 模型在独立宠物固件中 `model read done / pet host started / USB host installed / auto demo / [ai]` 全部出现 → frontier 点在完整固件中可部署。
