@@ -55,6 +55,8 @@ PROFILES = {
     "q2":    dict(emb=2, attn=2, gu=2, down=2),
     "q3":    dict(emb=3, attn=3, gu=3, down=3),
     "mixed": dict(emb=4, attn=4, gu=3, down=3),
+    "mix42": dict(emb=4, attn=4, gu=2, down=2),
+    "mix432": dict(emb=4, attn=4, gu=2, down=3),
 }
 
 
