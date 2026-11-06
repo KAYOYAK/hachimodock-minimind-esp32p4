@@ -1,5 +1,14 @@
 # 实测结果汇总（2026-11-05/06）
 
+## v3 真机补充测量（2026-11-06 晚）
+
+- row-expanded fp32 baseline：5,832.9/5,832.8/5,833.0 ms/token（3 次）；最终构建 1,612 ms → 累计 **3.62×**；
+- read-only 同访问模式对照：599.8 ms/token（GEMV 519 ms, 55 MB/s）vs 真实 GEMV 1,575 ms；
+- PSRAM 全预算：28,632,448 + 2,359,296 + 209,860 + 538,656 + free 1,814,172 = 33,554,432 B；mixed 余量 44,700 B（q3e4 约 40×）；
+- 192-window CE：q3e4/q4=1.021，mixed=1.008，q3=1.024，q2=1.611；
+- 100-prompt：q3e4 63%（CI 53–72）、fp32 66%、mixed 68%、q2 0%；task 检查 math/code/trans 1/10、5/10、1/10；
+- 公开 checkpoint 锚点：官方 MiniMind-3 fp32 CE 7.413（中文）/6.279（英文） vs 自训练 6.973/5.404。
+
 ## v2 修订说明
 
 - v2 修订稿 `ESL-LETTER-DRAFT-v2.tex` 已按 8 份模拟审稿意见修正：bound 语义、设备端 22/30、q3 rule=21/30、统一 1,612 ms/0.620 tok/s、Amdahl 2.10/2.13、244→122/61 MiB、Table I 补 209,860 B、Kestrel 引用、artifact 声明等。
