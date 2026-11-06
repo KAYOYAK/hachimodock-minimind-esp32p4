@@ -1,5 +1,11 @@
 # 实测结果汇总（2026-11-05/06）
 
+## v2 修订说明
+
+- v2 修订稿 `ESL-LETTER-DRAFT-v2.tex` 已按 8 份模拟审稿意见修正：bound 语义、设备端 22/30、q3 rule=21/30、统一 1,612 ms/0.620 tok/s、Amdahl 2.10/2.13、244→122/61 MiB、Table I 补 209,860 B、Kestrel 引用、artifact 声明等。
+- 本文件保留原始测量记录；以 v2 论文和 `RESPONSE-TO-SIMULATED-REVIEWS.md` 为准。
+
+
 > 部署模型：自训练 `full_sft_768.pth` → HF（native/HF logits max|diff|=0）→ q3e4（SHA256 feb574f9…，28,632,448 B）
 > 设备：ESP32-P4 rev v1.3，360 MHz，16 MB flash / 32 MB PSRAM；板端上下文 192 token，KV FP16（等价 96 FP32 内存）
 
