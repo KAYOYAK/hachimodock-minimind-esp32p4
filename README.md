@@ -295,3 +295,10 @@ TF 卡根目录：
 > 触发策略是「只认 SW1 短按」：摇杆/旋钮/其他键继续交给设备本地处理，避免误触发生成。
 > 生成完成后通过 `speech/text` 下发 `displayContent`，宠物屏幕显示气泡；状态依次为
 > `thinking → writing → waiting_user`。
+
+## 📄 论文草稿（IEEE Embedded Systems Letters 投稿准备中）
+
+- 标题：*Fully-Resident Weight Storage for Mixed-Precision SLM Inference on a 32-MB PSRAM MCU*
+- 目录：[`paper/`](paper/) —— LaTeX 源、编译说明、Fig. 1、全部测量数据与复现脚本、AI 使用披露、投稿清单；
+- 已本地编译验证：**4 页**（IEEEtran，ESL 页数上限内），PDF：[`paper/draft.pdf`](paper/draft.pdf)；
+- 还差：作者信息、AI 工具清单确认、参考文献核对（详见 `paper/README.md`）。
