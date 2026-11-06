@@ -1,0 +1,26 @@
+[17:24:46] kv precision test start
+[17:24:46] build -CtxOverride 96
+[17:25:42] build exit=0
+[17:25:52] flash fp16_ctx96 exit=0
+[17:27:08] fp16_ctx96: bench: 8 steps in 12879.6 ms => 1609.95 ms/token (0.621 tok/s)
+[17:27:08] fp16_ctx96: bench: gemv=12586.9 ms, 1573.36 ms/token, r=0.977, weight_MBps=2.3
+[17:27:08] fp16_ctx96: bench: 8 steps in 12879.6 ms => 1609.95 ms/token (0.621 tok/s)
+[17:27:08] fp16_ctx96: bench: gemv=12587.4 ms, 1573.43 ms/token, r=0.977, weight_MBps=2.3
+[17:27:08] fp16_ctx96: bench: 8 steps in 12880.2 ms => 1610.03 ms/token (0.621 tok/s)
+[17:27:08] fp16_ctx96: bench: gemv=12587.4 ms, 1573.42 ms/token, r=0.977, weight_MBps=2.3
+[17:27:08] fp16_ctx96: bench: 8 steps in 12880.4 ms => 1610.05 ms/token (0.621 tok/s)
+[17:27:08] fp16_ctx96: bench: gemv=12587.5 ms, 1573.44 ms/token, r=0.977, weight_MBps=2.3
+[17:27:08] build -CtxOverride 96 -KVFP32
+[17:28:05] build exit=0
+[17:28:14] flash fp32_ctx96 exit=0
+[17:29:31] fp32_ctx96: bench: 8 steps in 12859.6 ms => 1607.45 ms/token (0.622 tok/s)
+[17:29:31] fp32_ctx96: bench: gemv=12587.9 ms, 1573.49 ms/token, r=0.979, weight_MBps=2.3
+[17:29:31] fp32_ctx96: bench: 8 steps in 12860.9 ms => 1607.61 ms/token (0.622 tok/s)
+[17:29:31] fp32_ctx96: bench: gemv=12589.1 ms, 1573.64 ms/token, r=0.979, weight_MBps=2.3
+[17:29:31] fp32_ctx96: bench: 8 steps in 12861.6 ms => 1607.70 ms/token (0.622 tok/s)
+[17:29:31] fp32_ctx96: bench: gemv=12589.1 ms, 1573.64 ms/token, r=0.979, weight_MBps=2.3
+[17:29:31] fp32_ctx96: bench: 8 steps in 12861.6 ms => 1607.70 ms/token (0.622 tok/s)
+[17:29:31] fp32_ctx96: bench: gemv=12589.2 ms, 1573.65 ms/token, r=0.979, weight_MBps=2.3
+[17:29:31] restoring final standalone firmware
+[17:29:42] restore exit=0
+[17:29:42] kv precision test done
