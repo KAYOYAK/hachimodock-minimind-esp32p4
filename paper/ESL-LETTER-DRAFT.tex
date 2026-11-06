@@ -278,7 +278,11 @@ reducing bytes read. The 192-token context is obtained at no extra memory by sto
 (2.25~MiB for 192 tokens); measured windowed CE changes by 0.0014 and decode time is
 statistically unchanged, so the FP16 cache is adopted for deployment while FP32 K/V at 96
 tokens remains a conservative fallback. The model itself is deliberately small and trained on a single local GPU; its absolute
-quality is not the claim---accuracy measurements only delimit the feasible set. The artifact,
+quality is not the claim---accuracy measurements only delimit the feasible set. We report no
+energy-per-token figure (no power meter was available) and no standard benchmark score; a fixed
+held-out text and a deterministic rule set keep the comparison auditable but bound external
+validity. The usage model is single-turn: prompt prefill is token-by-token and replies are
+short, so the reported throughput is not a conversational latency. The artifact,
 training logs, evaluation scripts and the self-trained q3e4 image are public for reproduction.
 
 \textbf{Reproducibility and artifact.} The public repository contains the self-trained q3e4 image
