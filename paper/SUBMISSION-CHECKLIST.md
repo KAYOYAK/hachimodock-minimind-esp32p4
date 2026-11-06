@@ -1,4 +1,4 @@
-# IEEE ESL 投稿检查清单（最终状态，2026-11-06）
+# IEEE ESL 投稿检查清单（已投稿，2026-11-06）
 
 > 目标：IEEE Embedded Systems Letters（SCI 四区，4 页 letter）。
 > 图例：✅ 完成 ｜ ❌ 待办（仅剩 2 项外部操作）｜ ⏳ 录取后
@@ -47,10 +47,10 @@
 
 - ✅ `paper/RESPONSE-TEMPLATE.md` 已按最终数字重写（R1–R8）
 
-## F. 投稿系统（剩下的是你的操作）
+## F. 投稿系统（已完成）
 
 - ✅ ORCID 注册完成：0009-0001-1366-8144
-- ❌ 注册/登录 IEEE Author Portal，关联 ORCID，上传稿件（信息已在 `paper/submission/AUTHOR-INFO.md`）
+- ✅ 已在 IEEE Author Portal 完成投稿：**Submitted 2026-11-06**；Submission ID `b2f17b7c-ec73-41c9-9a88-3acff50452b1`（正式编号以编辑部邮件为准）
 - ✅ 发表方式：**传统（免费）**（OA 需 $2800，不选）
 - ⏳ 视频 Graphical Abstract：**初次投稿不要求**，minor revision 阶段必须交（等屏幕到货后录）
 - ⏳ 超页费：只有排版后超 4 页才收（$125/页）；当前源文件 4 页整，投稿后若 IEEE 排版超页再处理（硬上限 8 页）
