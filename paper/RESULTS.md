@@ -215,3 +215,12 @@ q3e4 是精度/容量/速度的折中点。
 - 结论：**mixed 不只是“测量固件可跑”，在完整宠物 host 固件中也正常启动并推理**，
   因此论文的 feasibility frontier 点成立；q3e4 的部署理由仍是 4× PSRAM 余量。
 - 之后已恢复 q3e4（28,632,448 B）+ 最终独立固件，验证通过。
+
+## 12. 测量边界与重复次数（T1.7 记录规范）
+
+- **bench（速度/r）**：`/bench N` 连续 decode N 个 token（token=1，**不含 prefill**），含一次完整 KV pass；同一 build 重复 2–4 次，r 稳定在 0.984–0.986；报告值取每次运行均值。
+- **ppl（CE）**：windowed 96-token 窗口独立 reset，窗口间不共享上下文（匹配部署单轮）；q3e4 设备/主机对拍 3 窗口；q2 3 窗口；mixed 3 窗口。
+- **规则评分**：greedy、max_new 32；host 同 recipe 全配置，设备端 q3e4（22/30）与 q2（0/30）作交叉验证。
+- **/bw**：1 MB PSRAM 顺序读，4 累加器，95.9 MB/s（下界）。
+- **不含**：显示刷新、USB 协议栈、音频、Wi-Fi；设备测量时主机仅供电/抓串口，不参与推理。
+- **文件**：raw 日志在 `logs/`，汇总 CSV/JSON 在 `paper/measurements/`；每个配置文件 SHA256 记录在仓库 release/README。
