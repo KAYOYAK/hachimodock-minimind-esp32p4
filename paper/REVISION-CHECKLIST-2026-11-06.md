@@ -40,7 +40,7 @@
 - ☑ **D2** 发 **v0.2.1 Release**：7 个镜像（q2/q3/q3e4/mixed/q4/mix42/mix432）+ tokenizer + 完整 SHA-256 + commit
 - ☑ **D3** SHA-256 补全；"Every number in Tables I–IV" → "Tables I–III + Table IV This-work row"；补 commit/tag
 - ☑ **D4** [13] ternaryvit 在正文引用或删除
-- ◐ **D5** 全仓库旧数字清理（0.465、投稿准备中、5,622 标签）
+- ☑ **D5** 全仓库旧数字清理（v3 数字已统一；历史发布说明标注 superseded）
 
 ### 模拟审稿人误读（不修，记录备查）
 - ☒ Table II "rMB/s / 0.98810.98"：PDF 文本抽取假象
@@ -50,18 +50,18 @@
 ## P1 — 需要板子/短测量
 
 - ☑ **E1**（需板子：板子当前未连接，延后） 重建 float-dequant baseline（packed + 每权重浮点反量化）3 次 → 可辩护的 5,622 或新值；修正 Table II 标签
-- ☐ **A4'** q3 的 host rule（已列 P0，此处仅提醒跑）
+- ☑ **A4'** q3 rule = 21/30 = 70%（已完成）
 - ☑ **F1** UART（COM4）抓启动日志：packed weights PSRAM free / KV 后 free → Table I 差额拆解
 - ☑ **F2** 同访问模式 read-only 对照或 PMU/CPI；cycles/weight（9.1）写进正文或 discussion
-- ◐ **F3** 可选：192-window CE 重测；prompt 集扩到 ≥100 + Wilson CI；标准语料 held-out CE；能量
-- ☐ **F4** 可选：q3e4 最终 build 的 FP32 vs FP16 KV 延迟对照（3 次）
+- ◐ **F3** 192-window CE ✅、100-prompt+CI ✅、公开语料/checkpoint 锚点 ✅；**仅能量 ❌（无功率计）**
+- ☑ **F4** FP16 vs FP32 K/V 延迟对照（96 ctx，各 4 次）：1,610.0 vs 1,607.6 ms/token，差 <0.2%
 
 ## P2 — 改稿与回复
 
 - ☑ **G1** tex v2：全部 P0/P1 修改，重编 **≤4 页**（必要时删 HachimoDock 集成段、压缩 Method）
 - ☑ **G2** 图表重绘（Fig 1a 预算线、Fig 1b 统一数据）
 - ☑ **G3** point-by-point response letter（按 R1/R2/R3/F 逐条：意见 → 修改 → 证据位置）
-- ◐ **G4** 更新 `paper/`、`docs/`、README、Release 说明到 v2 一致
+- ☑ **G4** 更新 `paper/`、`docs/`、README、v0.2.1 Release 说明到 v3 一致
 
 ## 执行顺序
 
