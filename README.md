@@ -129,7 +129,7 @@ local-llm  quantization  qwen3  tiny-llm  desktop-pet  usb-host  embedded-ai
 | 主控 | ESP32-P4（rev v1.3），双核 360 MHz，16 MB Flash，**32 MB PSRAM** |
 | 模型 | MiniMind-3 架构，63.91M 参数，自训练 + LoRA + **q3e4 混合量化** |
 | 模型体积 | **28,632,448 B（27.3 MiB）**，全驻 PSRAM |
-| 推理速度 | **1,612 ms/token ≈ 0.620 tok/s**（q3e4，int16+零拷贝+量化外提+批量解包/4 路/-O3，累计 **3.62×** vs row-expanded fp32 baseline 5,833 ms（同板重测）） |
+| 推理速度 | **1,612 ms/token ≈ 0.620 tok/s**（q3e4，int16+零拷贝+量化外提+批量解包/4 路，累计 **3.62×** vs row-expanded fp32 baseline 5,833 ms（同板重测）） |
 | 上下文 | **192 token**（FP16 K/V，KV 占用 2,359,296 B，与 96 token FP32 同预算） |
 | GEMV 占比 r | **0.977**（最终构建，含 lm_head） |
 | PSRAM 顺序读带宽 | **95.9 MB/s**（1 MB 微基准，下界） |
@@ -141,6 +141,8 @@ local-llm  quantization  qwen3  tiny-llm  desktop-pet  usb-host  embedded-ai
 | 网络 | 无（完全离线） |
 
 > 速度以「一句话几十秒」为代价换取完全离线与零云成本；实测瓶颈已定位在 GEMV 指令流（r=0.977），进一步提速方向是更宽的向量化解包。
+
+> **构建说明（2026-11-12 更正）**：1,612 ms 为提交版 `-O3` 构建；同源码 A/B 实测 `-O2` 为 **1,561 ms**（快 **3.16%**），因此 `-O3` 不作为提速项，新构建建议用 `-O2`。论文 v1 保持原样，v3/revision 已删去 `-O3` 归因。
 
 > **已验证（2026-11-01，官方 v3 固件裸板）**：开机自动握手成功 → 摇杆/自动触发 → 本地生成中文 → `speech/text` 气泡下发。日志摘要：
 > `hello from pet p4-e8f60ae8aa68` → `ack sent, handshake complete` → `[ai] 你好！我是一个AI助手，我是一个虚拟`。
